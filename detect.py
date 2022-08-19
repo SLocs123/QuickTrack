@@ -43,47 +43,69 @@ def load_classes(path):
     return list(filter(None, names))  # filter removes empty strings (such as last line)
 
 
-def speed(prev_loc, loc, cls, t):
-    # Crude estimation for distance, based on pixel size and distance references
-    # Can use Dist-Yolo run on images to give a correct reference
-
+def distance(loc, cls, imageHeight):
     referenceValues = {
         'person': [60, 20],
-        'car': [100, 20],
+        'car': [1367.955976688, -1.0088759860],
         'truck': [120, 20],
         'van': [140, 20],
         'bus': [170, 20]
     }
 
+    refHeight = 194  # this is the height of the model pulled from monodepth2, to ensure the correct standard is used (could also change to percentage of screen but either works)
+    scale = refHeight / imageHeight
+
     # current distance
-    currheight = loc[3]-loc[1]
-    referenceDist = referenceValues[cls]  # reference height, reference distance
-    currentDist = referenceDist[1] / (currheight / referenceDist[0])
+    height = loc[3] - loc[1]
+    height = height * scale
 
-    # previous distance
-    prevheight = prev_loc[3] - prev_loc[1]
-    previousDistance = referenceDist[1] / (prevheight / referenceDist[0])
+    equ = referenceValues[cls]  # reference numerator, reference power
+    Dist = round(equ[0] * height ** equ[1], 3)
 
-    if previousDistance > currentDist:
-        direction = 'Towards'
-        objSpeed = (previousDistance - currentDist) / t
-    elif currentDist > previousDistance:
-        direction = 'Away'
-        objSpeed = (currentDist - previousDistance) / t
-    else:
+    return Dist
+
+
+def speed(prevDist, Dist, t):
+    # Crude estimation for distance, based on size and distance references
+    # Can use Dist-Yolo run on images to give a correct reference
+
+    prevDist, Dist = round(prevDist, 3), round(Dist, 3)
+
+    if prevDist == Dist:
         objSpeed = 0
-        direction = 'Same'
+    else:
+        objSpeed = round((Dist - prevDist) / t, 3)
 
-    return objSpeed, direction
+    '''
+    dist will be current distance and previous distance, t will be time since last iteration, calculate speed and save into an array, display average speed, 
+    '''
+
+    return objSpeed
 
 
-def crop(img, multiplier):  # multiplier is the amount of height you want to see from the bottom
-    shape = img.shape
-    change = int(shape[0] * multiplier)
+def acceleration(prevSpeed, Speed, t):
+    # Crude estimation for distance, based on size and distance references
+    # Can use Dist-Yolo run on images to give a correct reference
 
-    crop_img = img[0 - change:shape[0], 0:shape[1]]
-    resized = cv2.resize(crop_img, (shape[1], shape[0]), interpolation=cv2.INTER_AREA)
-    return resized
+    prevSpeed, Speed = round(prevSpeed, 3), round(Speed, 3)
+
+    if prevSpeed == Speed:
+        objAcceleration = 0
+    else:
+        objAcceleration = round((Speed - prevSpeed) / t, 3)
+
+    '''
+    dist will be current distance and previous distance, t will be time since last iteration, calculate speed and save into an array, display average speed, 
+    '''
+
+    return objAcceleration
+# def crop(img, multiplier):  # multiplier is the amount of height you want to see from the bottom
+#     shape = img.shape
+#     change = int(shape[0] * multiplier)
+#
+#     crop_img = img[0 - change:shape[0], 0:shape[1]]
+#     resized = cv2.resize(crop_img, (shape[1], shape[0]), interpolation=cv2.INTER_AREA)
+#     return resized
 
 #
 # def reshape(img, multiplier, detList):
@@ -107,6 +129,7 @@ def crop(img, multiplier):  # multiplier is the amount of height you want to see
 #         if int(detList[i][5]) in filterList:
 #             coords.append(detList[i])
 #     return coords
+
 
 def dominant_colors(image):  # PIL image input # https://stackoverflow.com/questions/3241929/python-find-dominant-most-common-color-in-an-image
 
@@ -223,8 +246,13 @@ def detect(save_img=False):
                 # Rescale boxes from img_size to im0 size
 
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()  # original code
+                
+# ------------------------------------------------------------------ My Code ----------------------------------------------------------------------------------------
 
                 detList = det.tolist()
+                imageHeight, _, _ = im0.shape
+
+                # det format [xtopleft, ytopleft, xbottomright, ybottomright, confidence, class]
                 # Initialize on first frame
                 if frame == 1:
                     for obj in detList:
@@ -250,14 +278,15 @@ def detect(save_img=False):
 
                         objects.append({  # defining a tracking object
                             'id': obj_counter,
-                            'loc': obj[:4],
-                            'prev_loc': [],
+                            'loc': [obj[:4]],
                             'conf': obj[4],
                             'cls': round(obj[5]),
                             'initialFrame': frame,
                             'colour': color,
                             'shape': height/width,
+                            'Distance': [distance(obj[:4], names[round(obj[5])], imageHeight)],
                             'speed': 0,
+                            'acceleration': 0,
                             'potential': []
                         })
                 else:
@@ -309,8 +338,8 @@ def detect(save_img=False):
                             conf = []
 
                             # displacment - change in xyxy from 1 to 0
-                            confDispX = (-gradDisp[0] * np.absolute((obj['loc'][0] - det_obj[0])) + 1) if np.absolute((obj['loc'][0] - det_obj[0])) < maxDisp[0] else 0
-                            confDispY = (-gradDisp[1] * np.absolute((obj['loc'][1] - det_obj[1])) + 1) if np.absolute((obj['loc'][1] - det_obj[1])) < maxDisp[1] else 0
+                            confDispX = (-gradDisp[0] * np.absolute((obj['loc'][-1][0] - det_obj[0])) + 1) if np.absolute((obj['loc'][-1][0] - det_obj[0])) < maxDisp[0] else 0
+                            confDispY = (-gradDisp[1] * np.absolute((obj['loc'][-1][1] - det_obj[1])) + 1) if np.absolute((obj['loc'][-1][1] - det_obj[1])) < maxDisp[1] else 0
                             conf.append(np.average([confDispX, confDispY]))
 
                             # colour
@@ -337,18 +366,19 @@ def detect(save_img=False):
 
                             if frame - obj['initialFrame'] >= 4:  # deletes object if it hasnt been updated in 4 frames
                                 del objects[index]
+
                         if flag:  # defines a new object if there are no potentials
                             obj_counter += 1
                             objects.append({
                                 'id': obj_counter,
-                                'loc': det_obj[:4],
-                                'prev_loc': [],
+                                'loc': [det_obj[:4]],
                                 'conf': det_obj[4],
                                 'cls': round(det_obj[5]),
                                 'initialFrame': frame,
                                 'colour': obj_color,
-                                # 'shape': shape,
+                                'Distance': [distance(det_obj[:4], names[round(det_obj[5])], imageHeight)],
                                 'speed': 0,
+                                'acceleration': 0,
                                 'potential': []
                             })
                     for index, obj in enumerate(objects):  # updates tracked objects
@@ -371,16 +401,28 @@ def detect(save_img=False):
                             color = sRGBColor(r, g, b)
                             color = convert_color(color, LabColor)
 
-                            objects[index]['prev_loc'] = obj['loc']
-                            objects[index]['loc'] = top_conf[1]
+                            objects[index]['loc'].append(top_conf[1])
                             objects[index]['initialFrame'] = frame
                             objects[index]['conf'] = top_conf[2]
                             objects[index]['potential'] = []
-                            # objects[index]['shape'] = [height/width]
+                            objects[index]['Distance'].append(distance(top_conf[1], names[objects[index]['cls']], imageHeight))
                             objects[index]['colour'] = color
+
+                            if objects[index]['speed'] == 0:
+                                objects[index]['speed'] = [speed(objects[index]['Distance'][-2], objects[index]['Distance'][-1], t2 - prevTime)]
+                            else:
+                                objects[index]['speed'].append(speed(objects[index]['Distance'][-2], objects[index]['Distance'][-1], t2 - prevTime))
+
+                            if len(objects[index]['speed']) > 1:
+                                if objects[index]['acceleration'] == 0:
+                                    objects[index]['acceleration'] = [acceleration(objects[index]['speed'][-2], objects[index]['speed'][-1], t2 - prevTime)]
+                                else:
+                                    objects[index]['acceleration'].append(acceleration(objects[index]['speed'][-2], objects[index]['speed'][-1], t2 - prevTime))
 
                 if save_det:
                     detWhole.append(detList)
+                    
+# ------------------------------------------------------------------ My Code ----------------------------------------------------------------------------------------
 
                 # Print results
                 for c in det[:, -1].unique():
@@ -389,8 +431,8 @@ def detect(save_img=False):
 
                 # Write results
                 for obj in objects:
-                    xyxy = obj['loc']
-                    label = '%s | %d | %.2f' % (names[obj['cls']], obj['id'], obj['speed'])
+                    xyxy = obj['loc'][-1]
+                    label = '%s | %d | %.3f | %.3f' % (names[obj['cls']], obj['id'], float(np.mean(obj['Distance'])), float(np.mean(obj['speed'])))
                     plot_one_box(xyxy, im0, label=label, color=colors[obj['cls']], line_thickness=3)
                 for *xyxy, conf, cls in det:
                     if save_txt:  # Write to file
