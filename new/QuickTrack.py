@@ -92,7 +92,7 @@ class QuickTrack:
 
     def getDistance(self, detection):
         refHeight = 194  # this is the height of the model pulled from monodepth2, to ensure the correct standard is used (could also change to percentage of screen but either works)
-        scale = refHeight / self.imgH # scale to shift the measured detection height to the standard
+        scale = refHeight / self.imgH # scale to shift the measured detection height to the standard -------------------(ensure this is screen hieght)
         cls = round(detection[5]) # gets the class, so the correst reference equation is used
 
         # current distance
