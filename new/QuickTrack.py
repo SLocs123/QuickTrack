@@ -46,9 +46,12 @@ class QuickTrack:
             self.count += 1
         self.tracks = tracks
 
-    def updateTrack(self, trackid, trackletObject):
+    def updateTracks(self, trackid, trackletObject): # reassess inputs
         self.tracklets = self.generateTracklets(detectionList)
-        # search for the correct track id
+        # calculate confidences
+        # assign tracklets
+        # create new tracks
+        self.tracklets = []
 
     def generateTracklets(self, detectionList):
         for detection in detectionList:
@@ -56,7 +59,6 @@ class QuickTrack:
             colour = self.getColour(detectionList)
             tracklet = Tracklet(detectionList)
             self.tracklets.append(tracklet)
-        #Make sure to wipe tracklet cound and array after each frame
 
     def calculateConfidence(self):
         # need identifier for if a tracklet has been assigned to potential and if it gets updated
@@ -65,7 +67,7 @@ class QuickTrack:
             trackConfidence[track.id] = []
             for tracklet in self.tracklets:
                 # Logic for generating confidence
-                conf = track.compare(tracklet)
+                conf = track.__compareToTracklet(tracklet)
                 trackConfidence.append([tracklet.id, track.id, conf])
         return sortHighest(trackConfidence)
 
