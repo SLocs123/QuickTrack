@@ -8,5 +8,11 @@ ToDo:
   
   Assess data handling
   
-  Review distance estimation, could be an error in code!!!!
+  Review distance estimation, could be an error in code!!!! potentially remove
+
+  add track age tracking
+
+  define confidence syntax
+
+  Finish quick track process, important!!! can build from there
   
