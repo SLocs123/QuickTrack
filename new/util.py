@@ -88,10 +88,15 @@ def create_kalman_filter(x, y):
                      [0, 5]])
     
     # Process noise
-    q = np.array([[dt**4/4, 0, dt**3/2, 0],
+    kf.Q = np.array([[dt**4/4, 0, dt**3/2, 0],
                   [0, dt**4/4, 0, dt**3/2],
                   [dt**3/2, 0, dt**2, 0],
                   [0, dt**3/2, 0, dt**2]]) * 0.03
-    kf.Q = q
-    
     return kf
+
+def is_prediction_trustworthy(track, variance_thresholds):
+    p_diag = np.diag(track.kf.P)  # Extract the diagonal (variances) from the covariance matrix
+    for variance, threshold in zip(p_diag, variance_thresholds):
+        if variance > threshold:
+            return False  # Prediction is not trustworthy if any variance exceeds its threshold
+    return True  # All variances are within their thresholds
