@@ -62,7 +62,7 @@ def featureEmbedding():
 
 # ...
 
-def create_kalman_filter(x, y):
+def createKF(x, y):
     """Initializes a Kalman Filter for a new track based on initial (x, y) position."""
     kf = KalmanFilter(dim_x=4, dim_z=2)
     
@@ -94,7 +94,7 @@ def create_kalman_filter(x, y):
                   [0, dt**3/2, 0, dt**2]]) * 0.03
     return kf
 
-def is_prediction_trustworthy(track, variance_thresholds):
+def KFTrustworthy(track, variance_thresholds):
     p_diag = np.diag(track.kf.P)  # Extract the diagonal (variances) from the covariance matrix
     for variance, threshold in zip(p_diag, variance_thresholds):
         if variance > threshold:
