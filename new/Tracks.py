@@ -18,6 +18,7 @@ class Tracks:
         self.upper = Bounds[0]
         self.lower = Bounds[1]
         self.kf = util.create_kalman_filter()
+        self.predictedPOS = []
 
     def updatePosition(self, position):
         self.__setLoc(position)
