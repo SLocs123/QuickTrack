@@ -61,3 +61,37 @@ def featureEmbedding():
     # def updateTracks(self):
 
 # ...
+
+def create_kalman_filter(x, y):
+    """Initializes a Kalman Filter for a new track based on initial (x, y) position."""
+    kf = KalmanFilter(dim_x=4, dim_z=2)
+    
+    # State transition matrix
+    dt = 1  # time step
+    kf.F = np.array([[1, 0, dt, 0], 
+                     [0, 1, 0, dt], 
+                     [0, 0, 1, 0], 
+                     [0, 0, 0, 1]])
+    
+    # Measurement function
+    kf.H = np.array([[1, 0, 0, 0], 
+                     [0, 1, 0, 0]])
+    
+    # Initial state estimate
+    kf.x = np.array([x, y, 0, 0]).T
+    
+    # Covariance matrix
+    kf.P *= 1000
+    
+    # Measurement noise
+    kf.R = np.array([[5, 0], 
+                     [0, 5]])
+    
+    # Process noise
+    q = np.array([[dt**4/4, 0, dt**3/2, 0],
+                  [0, dt**4/4, 0, dt**3/2],
+                  [dt**3/2, 0, dt**2, 0],
+                  [0, dt**3/2, 0, dt**2]]) * 0.03
+    kf.Q = q
+    
+    return kf
