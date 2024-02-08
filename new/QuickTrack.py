@@ -30,12 +30,6 @@ class QuickTrack:
         self.trackletCount = 0
         self.count = 1
 
-    def updateFrame(self, img):
-        self.img = img
-        self.imgH, _, _ = img.shape
-        self.tracklets = []
-        self.trackletCount = 0
-
     def generateInitialTracks(self, detectionList):
         tracks = []
         for detection in detectionList:
@@ -44,21 +38,27 @@ class QuickTrack:
             newTrack = Tracks(self.count, detection[:4], 0, colour, distance)
             tracks.append(newTrack)
             self.count += 1
-        self.tracks = tracks
+        self.tracks = tracks    
 
-    def updateTracks(self, trackid, trackletObject): # reassess inputs
-        self.tracklets = self.generateTracklets(detectionList)
-        # calculate confidences
-        # assign tracklets
-        # create new tracks
+    def updateFrame(self, img):
+        self.img = img
+        self.imgH, _, _ = img.shape
         self.tracklets = []
+        self.trackletCount = 0
 
     def generateTracklets(self, detectionList):
         for detection in detectionList:
             #get colour
             colour = self.getColour(detectionList)
             tracklet = Tracklet(detectionList)
-            self.tracklets.append(tracklet)
+            self.tracklets.append(tracklet)    
+
+    def updateTracks(self, trackid, trackletObject): # reassess inputs
+        self.tracklets = self.generateTracklets(detectionList)
+        # calculate confidences
+        # assign tracklets
+        # create new tracks, if not assigned
+        self.tracklets = []
 
     def calculateConfidence(self):
         # need identifier for if a tracklet has been assigned to potential and if it gets updated
@@ -85,34 +85,7 @@ class QuickTrack:
     # def removeTrack(self, id):
     #     self.tracks = [track for track in self.tracks if track.getId() != id]
 
-    def getColour(self, detection):
-        width = detection[2] - detection[0]
-        height = detection[3] - detection[1]
-        b, g, r = self.img[int((detection[1] + height / 2)), int((detection[0] + width / 2))]
-        color = sRGBColor(r, g, b)
-        return convert_color(color, LabColor)
 
-    def getDistance(self, detection):
-        refHeight = 194  # this is the height of the model pulled from monodepth2, to ensure the correct standard is used (could also change to percentage of screen but either works)
-        scale = refHeight / self.imgH # scale to shift the measured detection height to the standard -------------------(ensure this is screen hieght)
-        cls = round(detection[5]) # gets the class, so the correst reference equation is used
-
-        # current distance
-        height = detection[3] - detection[1] # measured detection height and then scale
-        height = height * scale
-
-        equ = referenceValues[cls]  # reference numerator, reference power
-        Dist = round(equ[0] * height ** equ[1], 3) # estimates distance from the above set of equations
-
-        return Dist
-
-    def load_classes(self):
-        # Loads *.names file at 'path'
-        with open(self.path, 'r') as f:
-            names = f.read().split('\n')
-        return list(filter(None, names))  # filter removes empty strings (such as lastline)
-
-    # def updateTracks(self):
 
 
 
