@@ -1,3 +1,6 @@
+from filterpy.kalman import KalmanFilter
+import numpy as np
+
 def calculateTimeDependents(a, b, t):
     return round((a[0] - b[0]) / t, 3)
 
