@@ -29,6 +29,7 @@ class QuickTrack:
         self.tracklets = []
         self.trackletCount = 0
         self.count = 1
+        self.confData = {}
 
     def generateInitialTracks(self, detectionList):
         tracks = []
@@ -67,7 +68,8 @@ class QuickTrack:
         for track in self.tracks:
             trackConfidence[track.id] = []
             for tracklet in self.tracklets:
-                # Logic for generating confidence
+                # generate util setup
+                # calculate confidence for each track tracklet pair
                 conf = track.__compareToTracklet(tracklet)
                 trackConfidence.append([tracklet.id, track.id, conf])
         return sortHighest(trackConfidence)
