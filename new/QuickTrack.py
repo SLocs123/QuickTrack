@@ -58,9 +58,10 @@ class QuickTrack:
         # calculate confidences
         # assign tracklets
         # create new tracks, if not assigned
+        # remove old tracks, too long without update
         self.tracklets = []
 
-    def calculateConfidence(self):
+    def _calculateConfidence(self):
         # need identifier for if a tracklet has been assigned to potential and if it gets updated
         trackConfidence = []
         for track in self.tracks:
@@ -71,7 +72,7 @@ class QuickTrack:
                 trackConfidence.append([tracklet.id, track.id, conf])
         return sortHighest(trackConfidence)
 
-    def assignTracklets(self):
+    def _assignTracklets(self):
         list = self.calculateConfidence()
         for item in list:
             if self.tracklets[item[0]] is not None:
@@ -82,8 +83,9 @@ class QuickTrack:
                 # create new track from tracklet(item)
 
 
-    # def removeTrack(self, id):
-    #     self.tracks = [track for track in self.tracks if track.getId() != id]
+    def removeTracks(self):
+        # remove old tracks
+        # add a way to track track age
 
 
 
