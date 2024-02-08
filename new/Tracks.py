@@ -1,5 +1,6 @@
 import time
 from util import calculateTimeDependents, averageShape
+# or import util ?????????????????????????????
 
 
 class Tracks:
@@ -16,6 +17,7 @@ class Tracks:
         self.acceleration = []
         self.upper = Bounds[0]
         self.lower = Bounds[1]
+        self.kf = util.create_kalman_filter()
 
     def updatePosition(self, position):
         self.__setLoc(position)
