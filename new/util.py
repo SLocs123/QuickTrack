@@ -20,3 +20,15 @@ def average(list):
 def sortHighest(list):
     return sorted(list, key=lambda x: x[2], reverse=True)
 
+
+# define all setup functions:
+
+def displacement():
+
+def shape():
+
+def boundary():
+
+def featureEmbedding():
+
+# ...
