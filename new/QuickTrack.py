@@ -5,9 +5,11 @@ from colormath.color_objects import sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
 
-class QuickTrack:
-    def __init__(self, classPath, threshold=0.7, maxDisplacement=[150, 100], maxColourDif=2000, maxShapeDif=0.5,  weights=[15, 2, 2, 2]):
+class QuickTrack: # Quicktrack class contains all image parameters and the maximum tolerances for tracking properties. It also conatains lists of all tracks and tracklets
+    def __init__(self, help=False, classPath, threshold=0.7, maxDisplacement=[150, 100], maxColourDif=2000, maxShapeDif=0.5,  weights=[15, 2, 2, 2], maxAge=6):
 
+        if help:
+            print('required params.txt .......') # -----------------------------------------------------Finish, or print a txt file---------------------------------------------------#
         self.img = None
         self.imgH = None
         self.thres = threshold
@@ -20,6 +22,7 @@ class QuickTrack:
         self.tracks = []
         self.tracklets = []
         self.trackletCount = 0
+        sefl.maxAge = maxAge
         self.count = 1
         self.confData = {}
 
@@ -77,7 +80,9 @@ class QuickTrack:
                 # create new track from tracklet(item)
 
     def removeTracks(self):
-        # remove old tracks
+        for item in self.tracks:
+            if item.age > self.maxAge:
+                self.tracks.remove(item)
         # add a way to track track age
 
 
