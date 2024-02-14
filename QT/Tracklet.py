@@ -1,4 +1,4 @@
-from util import averageShape
+from .util import averageShape
 
 
 class Tracklet:
