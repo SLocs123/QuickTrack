@@ -21,12 +21,12 @@ class Tracks:
         self.predictedPOS = ()
         #self.age = () # --------------------------------------------------!!
 
-    def updateTrack(self, x1, y1, x2, y2):
-        self._updatePosition([x1,y1,x2,y2])
-        self._updateKF([x1,y1])
+    def updateTrack(self, newxy):
+        self._updatePosition(self.loc)
+        self._updateKF(newxy)
 
     def _updateKF(self):
-        self.kf.update(np.array([sef.loc[], new_y]))
+        self.kf.update(np.array([sef.loc, newxy]))
         predict = self.kf.predict()
         if util.KFTrustworthy(self.kf.P):
             self.predictedPOS = predict
