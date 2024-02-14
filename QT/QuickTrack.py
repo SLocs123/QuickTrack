@@ -1,6 +1,6 @@
 from .Tracks import Tracks
 from .Tracklet import Tracklet
-from .util import sortHighest 
+from .util import sortHighest, load_Classes
 from colormath.color_objects import sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
@@ -84,15 +84,6 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
             if item.age > self.maxAge:
                 self.tracks.remove(item) # --------------------------------might not work----------------------# .pop(index) might be better
         # add a way to track track age
-
-    def load_classes(path):
-        # Loads *.names file at 'path'
-        with open(path, 'r') as f:
-            names = f.read().split('\n')
-        return list(filter(None, names))  # filter removes empty strings (such as last line)
-        
-
-
 
 #gradDisp = [1 / maxDisp[0], 1 / maxDisp[1]]
 #gradCol = 1 / maxColDif
