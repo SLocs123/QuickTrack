@@ -1,6 +1,6 @@
 from Tracks import Tracks
 from Tracklet import Tracklet
-from util import sortHighest
+from util import sortHighest # -------------------------------#
 from colormath.color_objects import sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
@@ -23,17 +23,17 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
         self.tracklets = []
         self.trackletCount = 0
         sefl.maxAge = maxAge
-        self.count = 1
+        #self.count = 1
         self.confData = {}
 
     def generateInitialTracks(self, detectionList):
         tracks = []
         for detection in detectionList:
-            distance = self.getDistance(detection)
-            colour = self.getColour(detection)
+            # distance = self.getDistance(detection) # -----------------------------# define initial measurements for a track
+            # colour = self.getColour(detection)
             newTrack = Tracks(self.count, detection[:4], 0, colour, distance)
             tracks.append(newTrack)
-            self.count += 1
+            #self.count += 1
         self.tracks = tracks    
 
     def updateFrame(self, img):
