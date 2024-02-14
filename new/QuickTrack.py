@@ -69,7 +69,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
                 trackConfidence.append([tracklet.id, track.id, conf])
         return sortHighest(trackConfidence)
 
-    def _assignTracklets(self):
+    def _assignTracklets(self): # --------------------------------------------------- Could add assignment options as well----------------#
         list = self.calculateConfidence()
         for item in list:
             if self.tracklets[item[0]] is not None:
