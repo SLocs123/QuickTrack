@@ -82,7 +82,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
     def removeTracks(self):
         for item in self.tracks:
             if item.age > self.maxAge:
-                self.tracks.remove(item)
+                self.tracks.remove(item) # --------------------------------might not work----------------------# .pop(index) might be better
         # add a way to track track age
 
 
