@@ -22,7 +22,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
         self.tracks = []
         self.tracklets = []
         self.trackletCount = 0
-        sefl.maxAge = maxAge
+        self.maxAge = maxAge
         #self.count = 1
         self.confData = {}
 
