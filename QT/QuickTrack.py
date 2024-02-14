@@ -89,7 +89,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
 
 
 
-gradDisp = [1 / maxDisp[0], 1 / maxDisp[1]]
-gradCol = 1 / maxColDif
-gradShape = 1 / maxShapeDif
+#gradDisp = [1 / maxDisp[0], 1 / maxDisp[1]]
+#gradCol = 1 / maxColDif
+#gradShape = 1 / maxShapeDif
 
