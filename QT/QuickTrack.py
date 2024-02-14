@@ -1,5 +1,5 @@
 from .Tracks import Tracks
-import .Tracklet import Tracklet
+from .Tracklet import Tracklet
 from .util import sortHighest 
 from colormath.color_objects import sRGBColor, LabColor
 from colormath.color_conversions import convert_color
