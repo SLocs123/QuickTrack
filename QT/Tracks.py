@@ -22,8 +22,8 @@ class Tracks:
         #self.age = () # --------------------------------------------------!!
 
     def updateTrack():
-        self._updatePosition([x,y,x,y]);
-        self._updateKF([x,y]):
+        self._updatePosition([x,y,x,y])
+        self._updateKF([x,y])
 
     def _updateKF(self):
         self.kf.update(np.array([sef.loc[], new_y]))
