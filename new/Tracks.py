@@ -99,6 +99,14 @@ class Tracks:
 #        current = [self.speed[-1], self.distance[-1][1]]
 #        t = current[1] - prev[1]
 #        return calculateTimeDependents(current, prev, t)
+#   referenceValues = {
+#       'person': [60, 20],
+#       'car': [1367.955976688, -1.0088759860],
+#       'truck': [120, 20],
+#       'van': [140, 20],
+#       'bus': [170, 20]
+#   }
+
 
     # --------------------------------------------------------------------------------------------------------------- Distance, Ignore for now ----------------------------------------------- #
 
