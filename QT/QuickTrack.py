@@ -75,8 +75,8 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
             if self.tracklets[item[0]] is not None:
                 self.updateTrack(item[1], self.tracklets[item[0]])
                 self.tracklets[item[0]] = None # ---------------------------------------- must do this for all values with the same trackID/Tracklet Id
-        for item in self.tracklets:
-            if item is not None:
+        # for item in self.tracklets:
+            # if item is not None:
                 # create new track from tracklet(item)
 
     def removeTracks(self):
