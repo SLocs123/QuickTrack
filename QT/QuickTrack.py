@@ -18,7 +18,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
         self.maxShapeDif = maxShapeDif
         self.weights = weights
         self.path = classPath
-        self.classes = self.load_classes()
+        self.classes = load_classes(classPath)
         self.tracks = []
         self.tracklets = []
         self.trackletCount = 0
