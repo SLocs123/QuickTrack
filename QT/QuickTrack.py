@@ -1,6 +1,6 @@
 from .Tracks import Tracks
 from .Tracklet import Tracklet
-from .util import sortHighest, load_Classes
+from .util import sortHighest, load_classes
 from colormath.color_objects import sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
