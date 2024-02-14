@@ -4,14 +4,6 @@ from util import sortHighest
 from colormath.color_objects import sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
-referenceValues = {
-    'person': [60, 20],
-    'car': [1367.955976688, -1.0088759860],
-    'truck': [120, 20],
-    'van': [140, 20],
-    'bus': [170, 20]
-}
-
 
 class QuickTrack:
     def __init__(self, classPath, threshold=0.7, maxDisplacement=[150, 100], maxColourDif=2000, maxShapeDif=0.5,  weights=[15, 2, 2, 2]):
@@ -83,7 +75,6 @@ class QuickTrack:
         for item in self.tracklets:
             if item is not None:
                 # create new track from tracklet(item)
-
 
     def removeTracks(self):
         # remove old tracks
