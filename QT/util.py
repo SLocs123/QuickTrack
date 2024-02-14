@@ -103,3 +103,9 @@ def KFTrustworthy(track, variance_thresholds):
         if variance > threshold:
             return False  # Prediction is not trustworthy if any variance exceeds its threshold
     return True  # All variances are within their thresholds
+
+def load_classes(path):
+     # Loads *.names file at 'path'
+    with open(path, 'r') as f:
+        names = f.read().split('\n')
+    return list(filter(None, names))  # filter removes empty strings (such as last line)
