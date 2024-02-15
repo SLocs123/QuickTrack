@@ -47,10 +47,12 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
         self.tracklets = []
         self.trackletCount = 0
 
-    def _generateTracklets(self, detectionList):
+    def _generateTracklets(self, DetectionList):
         for detection in detectionList:
             #get colour
-            tracklet = Tracklet(detection)
+            #get id
+            #get loc
+            tracklet = Tracklet(Id, loc, colour)
             self.tracklets.append(tracklet)
 
     def _updateTracks(self): # reassess inputs
