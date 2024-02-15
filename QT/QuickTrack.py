@@ -25,6 +25,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
         self.maxAge = maxAge
         #self.count = 1
         self.confData = {}
+        self.frame = 0
 
     def generateInitialTracks(self, detectionList):
         tracks = []
@@ -37,9 +38,12 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
         self.tracks = tracks    
 
     def update(self, detectionList, img):
+        if frame = 0:
+            generateInitialTracks(detectionList)
         updateFrame(img)
         self.tracklets = generateTracklets(detectionList)
         updateTracks()
+        self.frame += 1
 
     def _updateFrame(self, img):
         self.img = img
