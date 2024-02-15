@@ -2,7 +2,7 @@ from .util import averageShape
 
 
 class Tracklet:
-    def __init__(self, Id, Obj, Frame, Colour, Distance, ):
+    def __init__(self, Id, Obj, Colour):
         self.Id = Id
         self.loc = [Obj[:4]]
         self.cls = round(Obj[5])
