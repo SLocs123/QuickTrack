@@ -1,6 +1,7 @@
 from filterpy.kalman import KalmanFilter
 import numpy as np
 
+
 def calculateTimeDependents(a, b, t):
     return round((a[0] - b[0]) / t, 3)
 
@@ -23,6 +24,7 @@ def average(list):
 def sortHighest(list):
     return sorted(list, key=lambda x: x[2], reverse=True)
 
+
 def getColourSimple(self, detection):
     width = detection[2] - detection[0]
     height = detection[3] - detection[1]
@@ -30,46 +32,16 @@ def getColourSimple(self, detection):
     color = sRGBColor(r, g, b)
     return convert_color(color, LabColor)
 
-def getColourML(self, detection):
-# import the git https://github.com/benaloha/car-classifier-yolo3-python
-    return convert_color(color, LabColor)
+
+def getColourML(self, detection, img):
+    # import the git https://github.com/benaloha/car-classifier-yolo3-python
+    return colour
 
 
-# define all setup functions:
+def getModel(self detection, img):
+    # import the git https://github.com/benaloha/car-classifier-yolo3-python
+    return colour
 
-# def displacement():
-
-# def shape():
-
-# def boundary():
-
-# def featureEmbedding():
-
-
-
-#    def getDistance(self, detection):
-#        refHeight = 194  # this is the height of the model pulled from monodepth2, to ensure the correct standard is used (could also change to percentage of screen but either works)
-#        scale = refHeight / self.imgH # scale to shift the measured detection height to the standard -------------------(ensure this is screen hieght)
-#        cls = round(detection[5]) # gets the class, so the correst reference equation is used
-
-        # current distance
-#        height = detection[3] - detection[1] # measured detection height and then scale
-#        height = height * scale
-
-#        equ = referenceValues[cls]  # reference numerator, reference power
-#        Dist = round(equ[0] * height ** equ[1], 3) # estimates distance from the above set of equations
-
-#        return Dist
-
-#    def load_classes(self):
-        # Loads *.names file at 'path'
-#        with open(self.path, 'r') as f:
-#            names = f.read().split('\n')
-#        return list(filter(None, names))  # filter removes empty strings (such as lastline)
-
-    # def updateTracks(self):
-
-# ...
 
 def createKF(x, y):
     """Initializes a Kalman Filter for a new track based on initial (x, y) position."""
@@ -103,6 +75,7 @@ def createKF(x, y):
                   [0, dt**3/2, 0, dt**2]]) * 0.03
     return kf
 
+
 def KFTrustworthy(track, variance_thresholds):
     p_diag = np.diag(track.kf.P)  # Extract the diagonal (variances) from the covariance matrix
     for variance, threshold in zip(p_diag, variance_thresholds):
@@ -110,8 +83,23 @@ def KFTrustworthy(track, variance_thresholds):
             return False  # Prediction is not trustworthy if any variance exceeds its threshold
     return True  # All variances are within their thresholds
 
+
 def load_classes(path):
      # Loads *.names file at 'path'
     with open(path, 'r') as f:
         names = f.read().split('\n')
     return list(filter(None, names))  # filter removes empty strings (such as last line)
+
+# define all setup functions:
+
+# def displacement():
+
+# def shape():
+
+# def boundary():
+
+# def featureEmbedding():
+
+
+
+
