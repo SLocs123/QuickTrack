@@ -1,10 +1,11 @@
 import time
-from .util import calculateTimeDependents, averageShape
+from .util import calculateTimeDependents, averageShape, createKF, KFTrustworthy
+import numpy as np
 # or import util ?????????????????????????????
 
 
 class Tracks:
-    def __init__(self, Id, Obj, Frame, Colour, Distance, Bounds=[6, 2]):
+    def __init__(self, Id, Obj, Frame, Colour, Bounds=[6, 2]):
         self.Id = Id
         self.loc = [Obj[:4]]
         self.cls = round(Obj[5])
@@ -17,18 +18,20 @@ class Tracks:
         # self.acceleration = []
         self.upper = Bounds[0] # What are these? can figure it out
         self.lower = Bounds[1] # What are these? can figure it out
-        self.kf = util.create_kalman_filter()
+        self.kf = createKF()
         self.predictedPOS = ()
         #self.age = () # --------------------------------------------------!!
+
 
     def updateTrack(self, newxy):
         self._updatePosition(self.loc)
         self._updateKF(newxy)
 
+
     def _updateKF(self):
-        self.kf.update(np.array([sef.loc, newxy]))
+        self.kf.update(np.array([self.loc, newxy]))
         predict = self.kf.predict()
-        if util.KFTrustworthy(self.kf.P):
+        if KFTrustworthy(self.kf.P):
             self.predictedPOS = predict
         
 
@@ -36,8 +39,10 @@ class Tracks:
         self.__setLoc(position)
         self.__setShape()
 
+
     def __setShape(self):
         self.shape = self.__calculateShape(self.loc)
+
 
     def __setLoc(self, coords):
         self.loc.append(coords)
@@ -45,12 +50,13 @@ class Tracks:
             self.loc = self.loc[-self.upper:]
 
 
-
     def __compareToTracklet(self, tracklet):
         return tracklet
 
+
     def getId(self):
         return self.id
+
 
     @staticmethod
     def __calculateShape(loc):

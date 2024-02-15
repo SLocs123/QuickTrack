@@ -1,5 +1,8 @@
 from filterpy.kalman import KalmanFilter
 import numpy as np
+from colormath.color_objects import sRGBColor, LabColor
+from colormath.color_conversions import convert_color
+from colormath.color_diff import delta_e_cie2000, delta_e_cmc, delta_e_cie1994, delta_e_cie1976
 
 
 def calculateTimeDependents(a, b, t):
@@ -38,7 +41,7 @@ def getColourML(self, detection, img):
     return colour
 
 
-def getModel(self detection, img):
+def getModel(self, detection, img):
     # import the git https://github.com/benaloha/car-classifier-yolo3-python
     return colour
 
@@ -99,7 +102,3 @@ def load_classes(path):
 # def boundary():
 
 # def featureEmbedding():
-
-
-
-
