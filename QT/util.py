@@ -23,6 +23,17 @@ def average(list):
 def sortHighest(list):
     return sorted(list, key=lambda x: x[2], reverse=True)
 
+def getColourSimple(self, detection):
+    width = detection[2] - detection[0]
+    height = detection[3] - detection[1]
+    b, g, r = self.img[int((detection[1] + height / 2)), int((detection[0] + width / 2))]
+    color = sRGBColor(r, g, b)
+    return convert_color(color, LabColor)
+
+def getColourML(self, detection):
+# import the git https://github.com/benaloha/car-classifier-yolo3-python
+    return convert_color(color, LabColor)
+
 
 # define all setup functions:
 
@@ -34,12 +45,7 @@ def sortHighest(list):
 
 # def featureEmbedding():
 
-#    def getColour(self, detection):
-#        width = detection[2] - detection[0]
-#        height = detection[3] - detection[1]
-#        b, g, r = self.img[int((detection[1] + height / 2)), int((detection[0] + width / 2))]
-#        color = sRGBColor(r, g, b)
-#        return convert_color(color, LabColor)
+
 
 #    def getDistance(self, detection):
 #        refHeight = 194  # this is the height of the model pulled from monodepth2, to ensure the correct standard is used (could also change to percentage of screen but either works)
