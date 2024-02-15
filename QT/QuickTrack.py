@@ -36,24 +36,26 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
             #self.count += 1
         self.tracks = tracks    
 
-    def updateFrame(self, img):
+    def update(self, detectionList, img):
+        updateFrame(img)
+        self.tracklets = generateTracklets(detectionList)
+        updateTracks()
+
+    def _updateFrame(self, img):
         self.img = img
         self.imgH, _, _ = img.shape
         self.tracklets = []
         self.trackletCount = 0
 
-    def generateTracklets(self, detectionList):
+    def _generateTracklets(self, detectionList):
         for detection in detectionList:
             #get colour
-            colour = self.getColour(detectionList)
-            tracklet = Tracklet(detectionList)
-            self.tracklets.append(tracklet)    
+            tracklet = Tracklet(detection)
+            self.tracklets.append(tracklet)
 
-    def updateTracks(self, trackid, trackletObject): # reassess inputs
-        self.tracklets = self.generateTracklets(detectionList)
-        # update track positions
+    def _updateTracks(self): # reassess inputs
         # calculate confidences
-        # assign tracklets
+        # assign tracklets/update position track=tracklet
         # create new tracks, if not assigned
         # remove old tracks, too long without update
         self.tracklets = []
@@ -80,7 +82,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
             # if item is not None:
                 # create new track from tracklet(item)
 
-    def removeTracks(self):
+    def __removeTracks(self):
         for item in self.tracks:
             if item.age > self.maxAge:
                 self.tracks.remove(item) # --------------------------------might not work----------------------# .pop(index) might be better
