@@ -51,6 +51,7 @@ class QuickTrack: # Quicktrack class contains all image parameters and the maxim
 
     def updateTracks(self, trackid, trackletObject): # reassess inputs
         self.tracklets = self.generateTracklets(detectionList)
+        # update track positions
         # calculate confidences
         # assign tracklets
         # create new tracks, if not assigned
