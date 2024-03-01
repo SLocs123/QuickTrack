@@ -12,25 +12,34 @@ model.agnostic = False  # NMS class-agnostic
 model.multi_label = False  # NMS multiple labels per box
 model.max_det = 1000  # maximum number of detections per image
 
+results = model.predict('output.mp4') # Runs yolov5 inference, not the quickest option though
+
+ results object
+
+for det in predictions:
+	print
+
+# Load the model
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+
 # Open the video file
 cap = cv2.VideoCapture('output.mp4')
-
-tracker = QT.QuickTrack()
 
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
 
+    # Convert frame to the format expected by the model (if necessary)
     # Inference
     results = model(frame)
-    pred = results.pred[0]
-    detectionList = pred.tolist()
-    tracker.update(detectionList, frame)
-    
+
+    # Process results here
+    # For example, display the frame with detections
+    # cv2.imshow('frame', frame_with_detections)
+
     if cv2.waitKey(1) == ord('q'):
         break
 
-print('Done')
 cap.release()
 cv2.destroyAllWindows()

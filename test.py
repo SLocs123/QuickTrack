@@ -20,18 +20,26 @@ predictions = results.pred[0] # pulls tensor from the results object
 cap = cv2.VideoCapture('output.mp4')
 
 tracker = QT.QuickTrack()
+frame = 0
 
 while cap.isOpened():
-    ret, frame = cap.read()
+    frame +=1
+    ret, img = cap.read()
     if not ret:
         break
-
-    # Convert frame to the format expected by the model (if necessary)
+#--------------------------------------------------------------------------------------------------------------#
+    
     # Inference
-    results = model(frame)
+    results = model(img)
     pred = results.pred[0]
+    detectionList = pred.tolist()
+    #Tracking
+    if frame == 1:
+        tracker.generateInitialTracks()
+    else:
+        tracker.update(detectionList, img)
 
-
+#--------------------------------------------------------------------------------------------------------------#
     if cv2.waitKey(1) == ord('q'):
         break
 

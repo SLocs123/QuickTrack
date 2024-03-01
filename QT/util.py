@@ -20,6 +20,12 @@ def averageShape(matrix):
     return width/height
 
 
+def getMiddle(detection):
+    bbox = detection[:4]
+    middle = [(bbox[2]-bbox[0])/2+bbox[0], (bbox[3]-bbox[1])/2+bbox[1]]
+    return middle
+
+
 def average(list):
     return sum(list) / len(list)
 

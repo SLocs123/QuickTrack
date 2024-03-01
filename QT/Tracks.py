@@ -1,5 +1,5 @@
 import time
-from .util import calculateTimeDependents, averageShape, createKF, KFTrustworthy
+from .util import calculateTimeDependents, averageShape, createKF, KFTrustworthy, getMiddle
 import numpy as np
 # or import util ?????????????????????????????
 
@@ -7,18 +7,20 @@ import numpy as np
 class Tracks:
     def __init__(self, Id, Obj, Frame, Colour, Bounds=[6, 2]):
         self.Id = Id
-        self.loc = [Obj[:4]]
+        self.bbox = Obj[:4]
+        self.loc = getMiddle(self.bbox)
         self.cls = round(Obj[5])
         self.conf = Obj[4]
         self.initialFrame = Frame
         self.colour = Colour
         self.shape = self.__calculateShape([Obj[:4]])
+        self.size = (self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])
         # self.distance = [Distance]
         # self.speed = []
         # self.acceleration = []
         self.upper = Bounds[0] # What are these? can figure it out
         self.lower = Bounds[1] # What are these? can figure it out
-        self.kf = createKF()
+        self.kf = createKF(self.loc[0], self.loc[1])
         self.predictedPOS = ()
         #self.age = () # --------------------------------------------------!!
 
@@ -28,7 +30,7 @@ class Tracks:
         self._updateKF(newxy)
 
 
-    def _updateKF(self):
+    def _updateKF(self, newxy):
         self.kf.update(np.array([self.loc, newxy]))
         predict = self.kf.predict()
         if KFTrustworthy(self.kf.P):
@@ -41,7 +43,7 @@ class Tracks:
 
 
     def __setShape(self):
-        self.shape = self.__calculateShape(self.loc)
+        self.shape = self.__calculateShape(self.bbox)
 
 
     def __setLoc(self, coords):
@@ -50,8 +52,8 @@ class Tracks:
             self.loc = self.loc[-self.upper:]
 
 
-    def __compareToTracklet(self, tracklet):
-        return tracklet
+    # def __compareToTracklet(self, tracklet):
+    #     return tracklet
 
 
     def getId(self):
@@ -59,8 +61,8 @@ class Tracks:
 
 
     @staticmethod
-    def __calculateShape(loc):
-        return averageShape(loc)
+    def __calculateShape(bbox):
+        return averageShape(bbox)
 
 
 
@@ -115,4 +117,19 @@ class Tracks:
 
 
     # --------------------------------------------------------------------------------------------------------------- Distance, Ignore for now ----------------------------------------------- #
+
+import util
+import inspect
+
+class Tracks:
+    def __init__(self, weights):
+        # Get only functions from util.py that start with 'conf_'
+        self.confMetrics = [func for func in dir(util) if callable(getattr(util, func)) and func.startswith("conf_")]
+        # Identify vital functions that start with 'confVital_'
+        self.vitalFunctions = [func for func in dir(util) if callable(getattr(util, func)) and func.startswith("confVital_")]
+
+        if len(weights) != len(self.confMetrics):
+            raise ValueError("The number of weights must match the number of confidence functions.")
+        
+        self.weights = weights
 
