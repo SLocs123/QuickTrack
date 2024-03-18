@@ -26,10 +26,12 @@ while cap.isOpened():
     results = model(frame)
     pred = results.pred[0]
     detectionList = pred.tolist()
+    # print(detectionList)
     tracker.update(detectionList, frame)
     
     if cv2.waitKey(1) == ord('q'):
         break
+    # print('count')
 
 print('Done')
 cap.release()

@@ -117,19 +117,3 @@ class Tracks:
 
 
     # --------------------------------------------------------------------------------------------------------------- Distance, Ignore for now ----------------------------------------------- #
-
-import util
-import inspect
-
-class Tracks:
-    def __init__(self, weights):
-        # Get only functions from util.py that start with 'conf_'
-        self.confMetrics = [func for func in dir(util) if callable(getattr(util, func)) and func.startswith("conf_")]
-        # Identify vital functions that start with 'confVital_'
-        self.vitalFunctions = [func for func in dir(util) if callable(getattr(util, func)) and func.startswith("confVital_")]
-
-        if len(weights) != len(self.confMetrics):
-            raise ValueError("The number of weights must match the number of confidence functions.")
-        
-        self.weights = weights
-

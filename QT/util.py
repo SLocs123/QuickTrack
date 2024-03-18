@@ -99,6 +99,29 @@ def load_classes(path):
         names = f.read().split('\n')
     return list(filter(None, names))  # filter removes empty strings (such as last line)
 
+def conf_KF(track, tracklet): # functrion to get predict vs actual loc difference
+    track.loc
+
+
+# Regular confidence calculation functions
+def conf_a():
+    # Simulated confidence calculation
+    return 0.75  # Example return value
+
+def conf_b():
+    return 0.65
+
+def conf_c():
+    return 0.80
+
+# Vital confidence calculation functions
+def confVital_a():
+    # Simulated vital confidence calculation
+    return 1  # Example return value
+
+def confVital_b():
+    return 0.9
+
 # define all setup functions:
 
 # def displacement():
