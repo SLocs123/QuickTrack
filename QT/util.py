@@ -88,6 +88,7 @@ def createKF(x, y):
 def KFTrustworthy(track, variance_thresholds):
     p_diag = np.diag(track.kf.P)  # Extract the diagonal (variances) from the covariance matrix
     for variance, threshold in zip(p_diag, variance_thresholds):
+        # print(variance, threshold)
         if variance > threshold:
             return False  # Prediction is not trustworthy if any variance exceeds its threshold
     return True  # All variances are within their thresholds

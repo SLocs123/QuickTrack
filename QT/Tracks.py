@@ -13,43 +13,48 @@ class Tracks:
         self.conf = Obj[4]
         self.initialFrame = Frame
         self.colour = Colour
-        self.shape = self.__calculateShape([Obj[:4]])
-        self.size = (self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])
+        self.shape = [self.__calculateShape([Obj[:4]])]
+        self.size = [(self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])]
         # self.distance = [Distance]
         # self.speed = []
         # self.acceleration = []
-        self.upper = Bounds[0] # What are these? can figure it out
-        self.lower = Bounds[1] # What are these? can figure it out
+        # self.upper = Bounds[0] # What are these? can figure it out
+        # self.lower = Bounds[1] # What are these? can figure it out
         self.kf = createKF(self.loc[0], self.loc[1])
-        self.predictedPOS = ()
+        self.predictedPOS = None
         #self.age = () # --------------------------------------------------!!
 
 
-    def updateTrack(self, newxy):
-        self._updatePosition(self.loc)
-        self._updateKF(newxy)
+    def updateTrack(self, tracklet):
+        self.loc.append(tracklet.loc)
+        self._updateKF(tracklet.loc)
+        self.shape.append(tracklet.shape)
+        self.colour = tracklet.colour
+        self.size.append(tracklet.size)
+        self.bbox = tracklet.bbox
 
 
     def _updateKF(self, newxy):
-        self.kf.update(np.array([self.loc, newxy]))
+        # print(np.array(newxy))
+        self.kf.update(np.array(newxy))
         predict = self.kf.predict()
-        if KFTrustworthy(self.kf.P):
+        if KFTrustworthy(self, [10, 10, 5, 5]):
             self.predictedPOS = predict
         
 
-    def _updatePosition(self, position):
-        self.__setLoc(position)
-        self.__setShape()
+    # def _updatePosition(self, position):
+    #     self.__setLoc(position)
+    #     self.__setShape()
 
 
-    def __setShape(self):
-        self.shape = self.__calculateShape(self.bbox)
+    # def __setShape(self, bbox):
+    #     self.shape.append(self.__calculateShape(bbox))
 
 
-    def __setLoc(self, coords):
-        self.loc.append(coords)
-        if len(self.loc) > self.upper:
-            self.loc = self.loc[-self.upper:]
+    # def __setLoc(self, coords):
+    #     self.loc.append(coords)
+        # if len(self.loc) > self.upper:
+        #     self.loc = self.loc[-self.upper:]
 
 
     # def __compareToTracklet(self, tracklet):
