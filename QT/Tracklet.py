@@ -7,6 +7,7 @@ class Tracklet:
         self.bbox = Obj[:4]
         self.loc = getMiddle(self.bbox)
         self.cls = round(Obj[5])
+        self.conf = Obj[4]
         self.colour = Colour
         self.shape = self.__calculateShape([Obj[:4]])
         self.size = (self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])

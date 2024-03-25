@@ -7,7 +7,6 @@ import sys
 import cv2
 import random
 import warnings
-
 # implementation of SAE - https://github.com/starwit/sae-stage-template
 
 
@@ -99,7 +98,7 @@ class QuickTrack:
         tracks = []
         for detection in detectionList:
             colour = self._getColour(detection)
-            newTrack = Tracks(self.trackCount, detection, 0, colour)
+            newTrack = Tracks(self.trackCount, detection, 0, colour) # ----------------- this might be an error detection
             tracks.append(newTrack)
             self.trackCount += 1
         self.tracks = tracks        
@@ -122,8 +121,7 @@ class QuickTrack:
         confs = self._calculateConfidence()
         # confs = self._calculateConfidence(False) # deciding how to sort, this approach has been removed
         self._assignTracklets(confs)
-        # create new tracks, if not assigned
-        # remove old tracks, too long without update
+        self.__removeTracks()
         self.tracklets = []
 
     def _calculateConfidence(self):
@@ -151,15 +149,21 @@ class QuickTrack:
                         track.updateTrack(tracklet)
                         assignedTrackIds.add(track.Id)
                         assignedTrackletIds.add(tracklet.Id)
-            # generate new tracks for unassigned ------------------------------!
+            # --------- potentially add after all assign logic options to avoid repeated code, assignments would have to use same logic though-----------#
+            unassignedTracklets = [tracklet for tracklet in self.tracklets if tracklet.Id not in assignedTrackletIds]
+            for tracklet in unassignedTracklets:
+                obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
+                newTrack = Tracks(self.trackCount, obj, self.frame, tracklet.colour)
+                self.tracks.append(newTrack)
+            #---------------------------------------------------------------------------------------------------------------------------------------------#
         # elif self.assign == 'hungarian':
         #     continue
 
     def __removeTracks(self):
         for item in self.tracks:
-            if item.age > self.maxAge:
+            age = self.frame - item.frame
+            if age > self.maxAge:
                 self.tracks.remove(item) # --------------------------------might not work----------------------# .pop(index) might be better
-        # add a way to track track age
                 
     def _calculateWeightedConfidence(self, track, tracklet):
         total_conf = 0

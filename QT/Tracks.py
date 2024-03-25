@@ -11,7 +11,7 @@ class Tracks:
         self.loc = getMiddle(self.bbox)
         self.cls = round(Obj[5])
         self.conf = Obj[4]
-        self.initialFrame = Frame
+        self.frame = Frame
         self.colour = Colour
         self.shape = [self.__calculateShape([Obj[:4]])]
         self.size = [(self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])]
@@ -32,6 +32,8 @@ class Tracks:
         self.colour = tracklet.colour
         self.size.append(tracklet.size)
         self.bbox = tracklet.bbox
+        self.conf = tracklet.conf
+        self.frame = tracklet.frame
 
 
     def _updateKF(self, newxy):
