@@ -112,7 +112,7 @@ class QuickTrack:
         tracklets = []
         for detection in detectionList:
             colour = self._getColour(detection)
-            tracklet = Tracklet(self.trackletCount, detection, colour) #??????????????? review the detection formatting ----------------------------!
+            tracklet = Tracklet(self.trackletCount, detection, colour, self.frame) #??????????????? review the detection formatting ----------------------------!
             tracklets.append(tracklet)
             self.trackletCount += 1
         return tracklets
