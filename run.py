@@ -32,7 +32,7 @@ while cap.isOpened():
     # print(detectionList)
     _ = tracker.update(detectionList, frame)
     # print('test')
-    tracker.show()
+    # tracker.show()
     
     if cv2.waitKey(1) == ord('q'):
         break

@@ -12,11 +12,14 @@ def calculateTimeDependents(a, b, t):
 def averageShape(matrix):
     zeroTwo = []
     oneThree = []
+    print(matrix)
     for row in matrix:
+        print(row)
         zeroTwo.append(row[2] - row[0])
         oneThree.append(row[3] - row[1])
     width = average(zeroTwo)
     height = average(oneThree)
+    print("!!!!!!!!!!!!!!!!!!!!!", (width/height))
     return width/height
 
 
@@ -100,13 +103,37 @@ def load_classes(path):
         names = f.read().split('\n')
     return list(filter(None, names))  # filter removes empty strings (such as last line)
 
+
+#-----------------------------------------------------------------------------------------------------------------------------------------
+
 def conf_KF(track, tracklet): # functrion to get predict vs actual loc difference
-    track.loc
+    if track.predictedPOS:
+        return 0
+    else:
+        predicted = track.predictedPOS
+        new = tracklet.loc
+
+        #Euclidean distance
+        distance = np.sqrt((predicted[0] - new[0]) ** 2 + (predicted[1] - new[1]) ** 2)
+        sigma = max_distance / 3
+        confidence = np.exp(-0.5 * (distance / sigma) ** 2)
+        # #weighted distance calculation
+        # normalized_weighted_distance = np.sqrt((wx * (predicted[0] - new[0]) ** 2 + wy * (predicted[1] - new[1]) ** 2) / (wx + wy))
+        # sigma = max_distance / 3
+        # confidence = np.exp(-0.5 * (normalized_weighted_distance / sigma) ** 2)
+        # # independant
+        # distance_x = abs(predicted[0] - new[0])
+        # distance_y = abs(predicted[1] - new[1])
+        # sigma_x = max_distance_x / 3
+        # sigma_y = max_distance_y / 3
+        # confidence_x = np.exp(-0.5 * (distance_x / sigma_x) ** 2)
+        # confidence_y = np.exp(-0.5 * (distance_y / sigma_y) ** 2)
+        return confidence
 
 
 # Regular confidence calculation functions
-def conf_a():
-    # Simulated confidence calculation
+def conf_shape(track, tracklet):
+    
     return 0.75  # Example return value
 
 def conf_b():

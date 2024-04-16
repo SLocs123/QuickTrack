@@ -8,12 +8,13 @@ class Tracks:
     def __init__(self, Id, Obj, Frame, Colour, Bounds=[6, 2]):
         self.Id = Id
         self.bbox = Obj[:4]
+        self.bboxes = [Obj[:4]]
         self.loc = getMiddle(self.bbox)
         self.cls = round(Obj[5])
         self.conf = Obj[4]
         self.frame = Frame
         self.colour = Colour
-        self.shape = [self.__calculateShape([Obj[:4]])]
+        self.shape = self.__calculateShape([Obj[:4]])
         self.size = [(self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])]
         # self.distance = [Distance]
         # self.speed = []
@@ -26,12 +27,13 @@ class Tracks:
 
 
     def updateTrack(self, tracklet):
+        self.bbox = tracklet.bbox
+        self.bboxes.append(tracklet.bbox)
         self.loc.append(tracklet.loc)
         self._updateKF(tracklet.loc)
         self.shape.append(tracklet.shape)
         self.colour = tracklet.colour
-        self.size.append(tracklet.size)
-        self.bbox = tracklet.bbox
+        self.size = self.__calculateShape(self.bboxes[-5:])
         self.conf = tracklet.conf
         self.frame = tracklet.frame
 
