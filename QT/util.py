@@ -12,14 +12,14 @@ def calculateTimeDependents(a, b, t):
 def averageShape(matrix):
     zeroTwo = []
     oneThree = []
-    print(matrix)
+    # print(matrix)
     for row in matrix:
         print(row)
         zeroTwo.append(row[2] - row[0])
         oneThree.append(row[3] - row[1])
     width = average(zeroTwo)
     height = average(oneThree)
-    print("!!!!!!!!!!!!!!!!!!!!!", (width/height))
+    # print("!!!!!!!!!!!!!!!!!!!!!", (width/height))
     return width/height
 
 
@@ -106,7 +106,7 @@ def load_classes(path):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
-def conf_KF(track, tracklet): # functrion to get predict vs actual loc difference
+def conf_KF(track, tracklet, maxDisp): # functrion to get predict vs actual loc difference
     if track.predictedPOS:
         return 0
     else:
@@ -115,7 +115,7 @@ def conf_KF(track, tracklet): # functrion to get predict vs actual loc differenc
 
         #Euclidean distance
         distance = np.sqrt((predicted[0] - new[0]) ** 2 + (predicted[1] - new[1]) ** 2)
-        sigma = max_distance / 3
+        sigma = maxDisp[0] / 3
         confidence = np.exp(-0.5 * (distance / sigma) ** 2)
         # #weighted distance calculation
         # normalized_weighted_distance = np.sqrt((wx * (predicted[0] - new[0]) ** 2 + wy * (predicted[1] - new[1]) ** 2) / (wx + wy))
@@ -133,8 +133,9 @@ def conf_KF(track, tracklet): # functrion to get predict vs actual loc differenc
 
 # Regular confidence calculation functions
 def conf_shape(track, tracklet):
-    
-    return 0.75  # Example return value
+    diff = abs(track.shape - tracklet.shape)/((track.shape + tracklet.shape)/2)
+    conf = 1- diff
+    return conf
 
 def conf_b():
     return 0.65
