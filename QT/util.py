@@ -157,12 +157,10 @@ def conf_KF_bbox(predictedbbox, trackletbbox, maxDisp):
     - iou: IOU value between the two bounding boxes.
     - confidence: Confidence score ranging from 1 (perfect match) to 0.
     """
-    if not predictedbbox:
-        return 0
-    else:
+    if predictedbbox is not None and np.any(predictedbbox):
+        
         predicted = predictedbbox
         new = trackletbbox
-
         # Calculate coordinates of intersection rectangle
         x1 = max(predicted[0], new[0])
         y1 = max(predicted[1], new[1])
@@ -184,6 +182,9 @@ def conf_KF_bbox(predictedbbox, trackletbbox, maxDisp):
         confidence = max(0, min(1, 1 - iou))
 
         return confidence
+    else:
+        return 0
+
 
 
 def conf_shape(track, tracklet):

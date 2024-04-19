@@ -172,7 +172,7 @@ class QuickTrack:
 
         # call confidence functions here
         # ------------------------------------------------------------------------------------- # look at passing only required information, instead of whole tracks
-        confs.append(conf_KF_bbox(track.predictedbbox[-1], tracklet.bbox, self.maxDisp))
+        confs.append(conf_KF_bbox(track.predictedbbox[-1] if track.predictedbbox else None, tracklet.bbox, self.maxDisp))
         # confs.append(conf_shape(track, tracklet))
         # confs.append(conf_c(track, tracklet))
         # confs_vital.append(confVital_a(track, tracklet))

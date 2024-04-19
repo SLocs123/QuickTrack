@@ -13,7 +13,7 @@ model.multi_label = False  # NMS multiple labels per box
 model.max_det = 1000  # maximum number of detections per image
 model.classes = [2]
 
-# print('innit')  
+print('innit')  
 # Open the video file
 cap = cv2.VideoCapture('output.mp4')
 
@@ -31,12 +31,11 @@ while cap.isOpened():
     detectionList = pred.tolist()
     # print(detectionList)
     _ = tracker.update(detectionList, frame)
-    # print('test')
     # tracker.show()
     
     if cv2.waitKey(1) == ord('q'):
         break
-    # print('count')
+
 
 print('Done')
 cap.release()
