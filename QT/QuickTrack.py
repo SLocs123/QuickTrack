@@ -1,9 +1,8 @@
 from .Tracks import Tracks
 from .Tracklet import Tracklet
 from .util import *
-from colormath.color_objects import sRGBColor, LabColor
-from colormath.color_conversions import convert_color
-import sys
+# from colormath.color_objects import sRGBColor, LabColor
+# from colormath.color_conversions import convert_color
 import cv2
 import random
 import warnings
@@ -11,7 +10,7 @@ import warnings
 
 
 class QuickTrack:
-    def __init__(self, classPath: str='QT/default.names', threshold: float=0.7, maxDisplacement: list[int]=[50, 35], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[15, 2, 2], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='greedy'):
+    def __init__(self, classPath: str='QT/default.names', threshold: float=0.7, maxDisplacement: list[int]=[50, 35], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='greedy'):
         """
         img is the current frame being inferenced, this also needs to be passed into the update function
         thres is the confidence threshold that gates a track-tracklet conf. The conf must be higher than this value
@@ -173,11 +172,11 @@ class QuickTrack:
 
         # call confidence functions here
         # ------------------------------------------------------------------------------------- # look at passing only required information, instead of whole tracks
-        confs.append(conf_KF(track, tracklet, self.maxDisp))
-        confs.append(conf_shape(track, tracklet))
-        confs.append(conf_c(track, tracklet))
-        confs_vital.append(confVital_a(track, tracklet))
-        confs_vital.append(confVital_b(track, tracklet))
+        confs.append(conf_KF_bbox(track.predictedbbox[-1], tracklet.bbox, self.maxDisp))
+        # confs.append(conf_shape(track, tracklet))
+        # confs.append(conf_c(track, tracklet))
+        # confs_vital.append(confVital_a(track, tracklet))
+        # confs_vital.append(confVital_b(track, tracklet))
         # ------------------------------------------------------------------------------------- #
         if len(self.weights) != len(confs):
             raise ValueError("The number of inputted weights must match the number of non-vital functions called. Check the _calculate_weighted_confidence function in Quicktrack.py.")

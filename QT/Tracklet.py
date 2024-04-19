@@ -1,17 +1,19 @@
-from .util import averageShape, getMiddle
+from .util import averageShape, bbox_to_z
 
 
 class Tracklet:
     def __init__(self, Id, Obj, Colour, frame):
         self.Id = Id
         self.bbox = Obj[:4]
-        self.loc = getMiddle(self.bbox)
+        z = bbox_to_z(self.bbox)
+        self.loc = z[:2]
         self.cls = round(Obj[5])
         self.conf = Obj[4]
         self.colour = Colour
         self.frame = frame
-        self.shape = self.__calculateShape([Obj[:4]])
-        self.size = (self.bbox[2]-self.bbox[0])*(self.bbox[3]-self.bbox[1])
+        self.size = z[2]
+        self.shape = z[3]
+
 
     @staticmethod
     def __calculateShape(loc):
