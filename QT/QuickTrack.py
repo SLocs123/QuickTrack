@@ -1,6 +1,7 @@
 from .Tracks import Tracks
 from .Tracklet import Tracklet
 from .util import *
+from scipy.optimize import linear_sum_assignment
 # from colormath.color_objects import sRGBColor, LabColor
 # from colormath.color_conversions import convert_color
 import cv2
@@ -89,6 +90,7 @@ class QuickTrack:
             self.plot_one_box(xyxy, self.img, label=label, color=self.colors[track.cls], line_thickness=3)
         cv2.imshow('Output', self.img)
         cv2.waitKey(1)  # 1 millisecond, 0 for a keypress
+        return self.img
 
     def _generateInitialTracks(self, detectionList):
         """
@@ -118,45 +120,54 @@ class QuickTrack:
 
     def _updateTracks(self):
         confs = self._calculateConfidence()
+        print(confs)
         # confs = self._calculateConfidence(False) # deciding how to sort, this approach has been removed
         self._assignTracklets(confs)
         self.__removeTracks()
         self.tracklets = []
 
     def _calculateConfidence(self):
-        trackConfidence = []
-        for track in self.tracks:
-            for tracklet in self.tracklets:
-                conf = self._calculateWeightedConfidence(track, tracklet) # calculate confidence for each track tracklet pair
-                # if conf >= self.thres:
-                #     trackConfidence.append([track.Id, tracklet.Id, conf])
-                trackConfidence.append([track.Id, tracklet.Id, conf]) # potenitally convert to np array
-        return trackConfidence
+        numTracks = len(self.tracks)
+        numTracklets = len(self.tracklets)
+
+        confMatrix = np.zeroes((numTracks,numTracklets))
+
+        for x, track in enumerate(self.tracks):
+            for y, tracklet in enumerate(self.tracklets):
+                conf = self._calculateWeightedConfidence(track, tracklet) # calculate confidence for each track tracklet pair  # if conf >= self.thres: #     trackConfidence.append([track.Id, tracklet.Id, conf])
+                confMatrix[x, y] = conf # potenitally convert to np array
+        return confMatrix
 
     def _assignTracklets(self, confs):
         if self.assign == 'greedy':
             confs = sortHighest(confs) # potenitally convert to np array and np sorting, investigate priority queues instead of sorting
-            assignedTrackIds = set()
-            assignedTrackletIds = set()
-            for conf in confs:
-                if conf[0] in assignedTrackIds or conf[1] in assignedTrackletIds:
-                    continue  
-                track = next((track for track in self.tracks if track.Id == conf[0]), None)
-                if track is not None:
-                    tracklet = next((tracklet for tracklet in self.tracklets if tracklet.Id == conf[1]), None) 
-                    if tracklet is not None:
-                        track.updateTrack(tracklet)
-                        assignedTrackIds.add(track.Id)
-                        assignedTrackletIds.add(tracklet.Id)
-            # --------- potentially add after all assign logic options to avoid repeated code, assignments would have to use same logic though-----------#
-            unassignedTracklets = [tracklet for tracklet in self.tracklets if tracklet.Id not in assignedTrackletIds]
-            for tracklet in unassignedTracklets:
-                obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
-                newTrack = Tracks(self.trackCount, obj, self.frame, tracklet.colour)
-                self.tracks.append(newTrack)
+            # assignedTrackIds = set()
+            # assignedTrackletIds = set()
+            # for conf in confs:
+            #     if conf[0] in assignedTrackIds or conf[1] in assignedTrackletIds:
+            #         continue  
+            #     track = next((track for track in self.tracks if track.Id == conf[0]), None)
+            #     if track is not None:
+            #         tracklet = next((tracklet for tracklet in self.tracklets if tracklet.Id == conf[1]), None) 
+            #         if tracklet is not None:
+            #             track.updateTrack(tracklet)
+            #             assignedTrackIds.add(track.Id)
+            #             assignedTrackletIds.add(tracklet.Id)
+            # # --------- potentially add after all assign logic options to avoid repeated code, assignments would have to use same logic though-----------#
+            # unassignedTracklets = [tracklet for tracklet in self.tracklets if tracklet.Id not in assignedTrackletIds]
+            # for tracklet in unassignedTracklets:
+            #     obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
+            #     newTrack = Tracks(self.trackCount, obj, self.frame, tracklet.colour)
+            #     self.tracks.append(newTrack)
             #---------------------------------------------------------------------------------------------------------------------------------------------#
-        # elif self.assign == 'hungarian':
-        #     continue
+        elif self.assign == 'hungarian': # may not need unnassignedTracks
+            matches = linear_sum_assignment(confs)
+            unassignedTracks = [i for i in range(len(self.tracks)) if i not in matches[:, 0]]
+            for x, y in matches: 
+                if confs[x,y] > self.thres:
+                    self.Tracks[x].updateTrack(self.tracklets[y])
+                else:
+                    unassignedTracks.append(x)
 
     def __removeTracks(self):
         for item in self.tracks:

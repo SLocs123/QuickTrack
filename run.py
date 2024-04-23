@@ -16,6 +16,13 @@ model.classes = [2]
 print('innit')  
 # Open the video file
 cap = cv2.VideoCapture('output.mp4')
+output_video_path = 'output_video.avi'
+fps = 30  # Frames per second
+codec = cv2.VideoWriter_fourcc(*'XVID')
+frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+out = cv2.VideoWriter(output_video_path, codec, fps, (frame_width, frame_height))
+
 
 tracker = QT.QuickTrack()
 # print('innit2')
@@ -31,10 +38,13 @@ while cap.isOpened():
     detectionList = pred.tolist()
     # print(detectionList)
     _ = tracker.update(detectionList, frame)
-    # tracker.show()
-    
+    outFrame = tracker.show()
+    print("-------------------------------")
+
+    out.write(outFrame)
     if cv2.waitKey(1) == ord('q'):
         break
+
 
 
 print('Done')
