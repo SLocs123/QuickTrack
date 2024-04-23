@@ -11,7 +11,7 @@ import warnings
 
 
 class QuickTrack:
-    def __init__(self, classPath: str='QT/default.names', threshold: float=0.7, maxDisplacement: list[int]=[50, 35], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='greedy'):
+    def __init__(self, classPath: str='QT/default.names', threshold: float=0.7, maxDisplacement: list[int]=[50, 35], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='hungarian'):
         """
         img is the current frame being inferenced, this also needs to be passed into the update function
         thres is the confidence threshold that gates a track-tracklet conf. The conf must be higher than this value
