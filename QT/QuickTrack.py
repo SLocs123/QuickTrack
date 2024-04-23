@@ -162,19 +162,20 @@ class QuickTrack:
             #---------------------------------------------------------------------------------------------------------------------------------------------#
         elif self.assign == 'hungarian': # may not need unnassignedTracks
             matches = linear_sum_assignment(confs)
-            unassignedTracks = [i for i in range(len(self.tracks)) if i not in matches[:, 0]]
+            # unassignedTracks = [i for i in range(len(self.tracks)) if i not in matches[:, 0]]
+            unassignedTracks = []
             unassignedTracklets = []
             for x, y in matches: 
                 if confs[x,y] > self.thres:
                     self.Tracks[x].updateTrack(self.tracklets[y])
-                    unassignedTracklets.append(y)
                 else:
+                    unassignedTracklets.append(y)
                     unassignedTracks.append(x)
             for i in unassignedTracklets:
                 tracklet = self.tracklets[i]
                 obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
                 self.tracks.append(Tracks(self.trackCount, obj, self.frame, tracklet.colour))
-                
+
 
     def __removeTracks(self):
         for item in self.tracks:
