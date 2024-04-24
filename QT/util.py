@@ -42,14 +42,11 @@ def calculateTimeDependents(a, b, t):
 def averageShape(matrix):
     zeroTwo = []
     oneThree = []
-    # print(matrix)
     for row in matrix:
-        print(row)
         zeroTwo.append(row[2] - row[0])
         oneThree.append(row[3] - row[1])
     width = average(zeroTwo)
     height = average(oneThree)
-    # print("!!!!!!!!!!!!!!!!!!!!!", (width/height))
     return width/height
 
 
@@ -130,7 +127,6 @@ def createKF(x, y, s, r):
 def KFTrustworthy(track, variance_thresholds):
     p_diag = np.diag(track.kf.P)  # Extract the diagonal (variances) from the covariance matrix
     for variance, threshold in zip(p_diag, variance_thresholds):
-        # print(variance, threshold)
         if variance > threshold:
             return False  # Prediction is not trustworthy if any variance exceeds its threshold
     return True  # All variances are within their thresholds
@@ -143,9 +139,8 @@ def load_classes(path):
     return list(filter(None, names))  # filter removes empty strings (such as last line)
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------------
-
-def conf_KF_bbox(predictedbbox, trackletbbox, maxDisp): 
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
+def conf_KF_bbox(track, tracklet, maxDisp): 
     """
     Calculate Intersection over Union (IOU) for two bounding boxes.
 
@@ -157,16 +152,20 @@ def conf_KF_bbox(predictedbbox, trackletbbox, maxDisp):
     - iou: IOU value between the two bounding boxes.
     - confidence: Confidence score ranging from 1 (perfect match) to 0.
     """
+
+    predictedbbox = track.predictedbbox
+    trackletbbox = tracklet.bbox
+    # print(predictedbbox, '///', trackletbbox)
     if predictedbbox is not None and np.any(predictedbbox):
         
-        predicted = predictedbbox
+        predicted = predictedbbox[-1]
         new = trackletbbox
         # Calculate coordinates of intersection rectangle
         x1 = max(predicted[0], new[0])
         y1 = max(predicted[1], new[1])
         x2 = min(predicted[2], new[2])
         y2 = min(predicted[3], new[3])
-
+        # print('pass')
         # Calculate intersection area (IA)
         intersection_area = max(0, x2 - x1 + 1) * max(0, y2 - y1 + 1)
 
@@ -177,14 +176,22 @@ def conf_KF_bbox(predictedbbox, trackletbbox, maxDisp):
 
         # Calculate IOU
         iou = intersection_area / union_area
-
+        # print('|', iou)
         # Transform IOU into confidence score (1 to 0)
-        confidence = max(0, min(1, 1 - iou))
+        # confidence = max(0, min(1, 1 - iou))
+        # print(confidence, '|')
 
-        return confidence
+        return iou
     else:
-        return 0
+        #Euclidean distance
+        pos = track.loc
+        new = tracklet.loc
 
+        distance = np.sqrt((pos[0] - new[0]) ** 2 + (pos[1] - new[1]) ** 2)
+        sigma = maxDisp[0] / 3
+        confidence = np.exp(-0.5 * (distance / sigma) ** 2)
+        
+        return confidence
 
 
 def conf_shape(track, tracklet):

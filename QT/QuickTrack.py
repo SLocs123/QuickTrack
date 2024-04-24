@@ -11,7 +11,7 @@ import warnings
 
 
 class QuickTrack:
-    def __init__(self, classPath: str='QT/default.names', threshold: float=0.7, maxDisplacement: list[int]=[50, 35], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='hungarian'):
+    def __init__(self, classPath: str='QT/default.names', threshold: float=0.1, maxDisplacement: list[int]=[150, 100], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='LinAssign'):
         """
         img is the current frame being inferenced, this also needs to be passed into the update function
         thres is the confidence threshold that gates a track-tracklet conf. The conf must be higher than this value
@@ -38,7 +38,7 @@ class QuickTrack:
             self.colour = 'no'
         else:
             self.colour = colour
-        if assign not in {'greedy', 'linSum'}:
+        if assign not in {'greedy', 'LinAssign'}:
             warnings.warn(f"Invalid assign method '{assign}'. Defaulting to 'greedy'.", RuntimeWarning)
             self.assign = 'greedy'
         else:
@@ -88,8 +88,8 @@ class QuickTrack:
             xyxy = track.bbox
             label = '%s | %d' % (self.classes[track.cls], track.Id)
             self.plot_one_box(xyxy, self.img, label=label, color=self.colors[track.cls], line_thickness=3)
-        cv2.imshow('Output', self.img)
-        cv2.waitKey(1)  # 1 millisecond, 0 for a keypress
+        # cv2.imshow('Output', self.img)
+        # cv2.waitKey(1)  # 1 millisecond, 0 for a keypress
         return self.img
 
     def _generateInitialTracks(self, detectionList):
@@ -130,7 +130,7 @@ class QuickTrack:
         numTracks = len(self.tracks)
         numTracklets = len(self.tracklets)
 
-        confMatrix = np.zeroes((numTracks,numTracklets))
+        confMatrix = np.zeros((numTracks,numTracklets))
 
         for x, track in enumerate(self.tracks):
             for y, tracklet in enumerate(self.tracklets):
@@ -160,29 +160,33 @@ class QuickTrack:
             #     newTrack = Tracks(self.trackCount, obj, self.frame, tracklet.colour)
             #     self.tracks.append(newTrack)
             #---------------------------------------------------------------------------------------------------------------------------------------------#
-        elif self.assign == 'hungarian': # may not need unnassignedTracks
-            matches = linear_sum_assignment(confs)
+        elif self.assign == 'LinAssign': # may not need unnassignedTracks
+            matches = self.linSumAssign(confs)
+            print(matches)
             # unassignedTracks = [i for i in range(len(self.tracks)) if i not in matches[:, 0]]
             unassignedTracks = []
             unassignedTracklets = []
+            for i, tracklet in enumerate(self.tracklets):
+                if len(matches) != 0:
+                    if i not in matches[:, 1]:
+                        unassignedTracklets.append(i)
+
             for x, y in matches: 
                 if confs[x,y] > self.thres:
-                    self.Tracks[x].updateTrack(self.tracklets[y])
+                    self.tracks[x].updateTrack(self.tracklets[y])
                 else:
-                    unassignedTracklets.append(y)
                     unassignedTracks.append(x)
             for i in unassignedTracklets:
                 tracklet = self.tracklets[i]
                 obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
                 self.tracks.append(Tracks(self.trackCount, obj, self.frame, tracklet.colour))
+                self.trackCount+=1
 
 
     def __removeTracks(self):
-        for item in self.tracks:
-            age = self.frame - item.frame
-            if age > self.maxAge:
-                self.tracks.remove(item) # --------------------------------might not work----------------------# .pop(index) might be better
-                
+         self.tracks = [item for item in self.tracks if self.frame - item.frame <= self.maxAge]
+
+
     def _calculateWeightedConfidence(self, track, tracklet):
         total_conf = 0
         total_weight = sum(self.weights)
@@ -191,7 +195,7 @@ class QuickTrack:
 
         # call confidence functions here
         # ------------------------------------------------------------------------------------- # look at passing only required information, instead of whole tracks
-        confs.append(conf_KF_bbox(track.predictedbbox[-1] if track.predictedbbox else None, tracklet.bbox, self.maxDisp))
+        confs.append(conf_KF_bbox(track, tracklet, self.maxDisp))
         # confs.append(conf_shape(track, tracklet))
         # confs.append(conf_c(track, tracklet))
         # confs_vital.append(confVital_a(track, tracklet))
@@ -212,6 +216,12 @@ class QuickTrack:
         if flag:
             weighted_confidence = weighted_confidence * self.vitalScale 
         return weighted_confidence
+    
+
+    def linSumAssign(self, confs):
+        costs = 1- confs
+        x, y = linear_sum_assignment(costs)
+        return np.array(list(zip(x, y)))
             
    
     def plot_one_box(self, x, img, color=None, label=None, line_thickness=3):

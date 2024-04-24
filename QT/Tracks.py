@@ -35,12 +35,18 @@ class Tracks:
         self.conf = tracklet.conf
         self.frame = tracklet.frame
 
+    
+    def assignTracklet(self, tracklet):
+         self._updateKF([tracklet.loc[0], tracklet.loc[1], tracklet.size, tracklet.shape])
+
 
     def _updateKF(self, newxysr):
         # newxy contains [x, y, s, r]
         self.kf.update(np.array(newxysr))
         self.kf.predict()
+        # print(self.kf.x)
         if KFTrustworthy(self, [10, 10, 5, 5]):
+                print('trustworthy')
                 self.predictedPOS.append(self.kf.x[:2])
                 self.predictedbbox.append(x_to_bbox([self.kf.x[0], self.kf.x[1], self.kf.x[4], self.kf.x[5]]).flatten().tolist())
         
