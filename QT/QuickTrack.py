@@ -7,11 +7,12 @@ from scipy.optimize import linear_sum_assignment
 import cv2
 import random
 import warnings
+from __future__ import annotations
 # implementation of SAE - https://github.com/starwit/sae-stage-template
 
 
 class QuickTrack:
-    def __init__(self, classPath: str='QT/default.names', threshold: float=0.1, maxDisplacement: list[int]=[150, 100], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='LinAssign'):
+    def __init__(self, confParams: list[str]=["KF"], classPath: str='QT/default.names', threshold: float=0.1, maxDisplacement: list[int]= [150,100], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='LinAssign'):
         """
         img is the current frame being inferenced, this also needs to be passed into the update function
         thres is the confidence threshold that gates a track-tracklet conf. The conf must be higher than this value
@@ -44,6 +45,7 @@ class QuickTrack:
         else:
             self.assign = assign  
 
+        self.confParams = confParams
         self.img = None 
         self.thres = threshold
         self.maxDisp = maxDisplacement 
@@ -120,7 +122,7 @@ class QuickTrack:
 
     def _updateTracks(self):
         confs = self._calculateConfidence()
-        print(confs)
+        # print(confs)
         # confs = self._calculateConfidence(False) # deciding how to sort, this approach has been removed
         self._assignTracklets(confs)
         self.__removeTracks()
@@ -129,17 +131,31 @@ class QuickTrack:
     def _calculateConfidence(self):
         numTracks = len(self.tracks)
         numTracklets = len(self.tracklets)
+        matrixList = []
 
-        confMatrix = np.zeros((numTracks,numTracklets))
+        for param_set in self.confParams:
+            confMatrix = np.zeros((numTracks, numTracklets))
+            # Create a dictionary of keyword arguments
+            kwargs = {
+                'KF': 'KF' in param_set,
+                'FE': 'FE' in param_set,
+                'Zone': 'Zone' in param_set,
+                'Shape': 'Shape' in param_set
+            }
+            for x, track in enumerate(self.tracks):
+                for y, tracklet in enumerate(self.tracklets):
+                    # Calculate confidence for each track-tracklet pair
+                    conf = self._calculateWeightedConfidence(track, tracklet, **kwargs)
+                    # Store the confidence value in the matrix
+                    confMatrix[x, y] = conf
+            # Append the confMatrix to the matrixList
+            matrixList.append(confMatrix)
+        return matrixList
 
-        for x, track in enumerate(self.tracks):
-            for y, tracklet in enumerate(self.tracklets):
-                conf = self._calculateWeightedConfidence(track, tracklet) # calculate confidence for each track tracklet pair  # if conf >= self.thres: #     trackConfidence.append([track.Id, tracklet.Id, conf])
-                confMatrix[x, y] = conf # potenitally convert to np array
-        return confMatrix
-
-    def _assignTracklets(self, confs):
-        if self.assign == 'greedy':
+    def _assignTracklets(self, confs, assign=None):
+        if assign == None:
+            assign = self.assign
+        if assign == 'greedy':
             confs = sortHighest(confs) # potenitally convert to np array and np sorting, investigate priority queues instead of sorting
             # assignedTrackIds = set()
             # assignedTrackletIds = set()
@@ -160,9 +176,9 @@ class QuickTrack:
             #     newTrack = Tracks(self.trackCount, obj, self.frame, tracklet.colour)
             #     self.tracks.append(newTrack)
             #---------------------------------------------------------------------------------------------------------------------------------------------#
-        elif self.assign == 'LinAssign': # may not need unnassignedTracks
-            matches = self.linSumAssign(confs)
-            print(matches)
+        elif assign == 'LinAssign': # may not need unnassignedTracks
+            matches = self.linSumAssign(confs[1]) # -----------------------------------------------------------------fix this into groupings
+            # print(matches)
             # unassignedTracks = [i for i in range(len(self.tracks)) if i not in matches[:, 0]]
             unassignedTracks = []
             unassignedTracklets = []
@@ -187,7 +203,7 @@ class QuickTrack:
          self.tracks = [item for item in self.tracks if self.frame - item.frame <= self.maxAge]
 
 
-    def _calculateWeightedConfidence(self, track, tracklet):
+    def _calculateWeightedConfidence(self, track, tracklet, KF=False, FE=False, Zone=False, Shape=False):
         total_conf = 0
         total_weight = sum(self.weights)
         confs = []
@@ -195,9 +211,10 @@ class QuickTrack:
 
         # call confidence functions here
         # ------------------------------------------------------------------------------------- # look at passing only required information, instead of whole tracks
-        confs.append(conf_KF_bbox(track, tracklet, self.maxDisp))
-        # confs.append(conf_shape(track, tracklet))
-        # confs.append(conf_c(track, tracklet))
+        if KF: confs.append(conf_KF_bbox(track, tracklet, self.maxDisp))
+        # if FE: #run feture comparison
+        if Shape: confs.append(conf_shape(track, tracklet))
+        
         # confs_vital.append(confVital_a(track, tracklet))
         # confs_vital.append(confVital_b(track, tracklet))
         # ------------------------------------------------------------------------------------- #
