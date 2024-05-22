@@ -12,7 +12,7 @@ from __future__ import annotations
 
 
 class QuickTrack:
-    def __init__(self, confParams: list[str]=["KF"], classPath: str='QT/default.names', threshold: float=0.1, maxDisplacement: list[int]= [150,100], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[1], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='LinAssign'):
+    def __init__(self, confParams: list[str]=[["KF"], ["KF", "FE"]], classPath: str='QT/default.names', threshold: float=0.1, maxDisplacement: list[int]= [150,100], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[[1], [1,2]], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='LinAssign'):
         """
         img is the current frame being inferenced, this also needs to be passed into the update function
         thres is the confidence threshold that gates a track-tracklet conf. The conf must be higher than this value
