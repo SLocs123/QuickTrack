@@ -11,6 +11,15 @@ from __future__ import annotations
 # implementation of SAE - https://github.com/starwit/sae-stage-template
 
 
+"""
+Need to add logic for the grouped thresholds and for any other tier variant variable
+
+Logic needs testing but seems correct, should port some ideas to main branch, since the tracks flag is more efficient(i think)
+"""
+
+
+
+
 class QuickTrack:
     def __init__(self, confParams: list[str]=[["KF"], ["KF", "FE"]], classPath: str='QT/default.names', threshold: list[float]=[0.7, 0.3], maxDisplacement: list[int]= [150,100], maxColourDif: int=2000, maxShapeDif: float=0.5, weights: list[int]=[[1], [1,2]], maxAge: int=6, colour: str='no', vitalScale: float=0.7, assign: str='LinAssign'):
         """
