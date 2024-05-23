@@ -21,6 +21,7 @@ class Tracks:
         self.kf = createKF(self.loc[0], self.loc[1], self.size, self.shape)
         self.predictedPOS = []
         self.predictedbbox = []
+        self.assigned = False
         #self.age = () # --------------------------------------------------!!
 
 
@@ -34,6 +35,7 @@ class Tracks:
         self.size = tracklet.size
         self.conf = tracklet.conf
         self.frame = tracklet.frame
+        self.assigned = True
 
     
     def assignTracklet(self, tracklet):

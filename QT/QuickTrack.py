@@ -121,20 +121,12 @@ class QuickTrack:
         return tracklets
 
     def _updateTracks(self):
-        confs = self._calculateConfidence()
-        # print(confs)
-        # confs = self._calculateConfidence(False) # deciding how to sort, this approach has been removed
-        self._assignTracklets(confs)
-        self.__removeTracks()
-        self.tracklets = []
-
-    def _calculateConfidence(self):
-        numTracks = len(self.tracks)
-        numTracklets = len(self.tracklets)
-        matrixList = []
+        for track in self.tracks:
+            track.assigned = False
 
         for param_set in self.confParams:
-            confMatrix = np.zeros((numTracks, numTracklets))
+            tracks = []
+            tracklets = []
             # Create a dictionary of keyword arguments
             kwargs = {
                 'KF': 'KF' in param_set,
@@ -142,15 +134,33 @@ class QuickTrack:
                 'Zone': 'Zone' in param_set,
                 'Shape': 'Shape' in param_set
             }
-            for x, track in enumerate(self.tracks):
-                for y, tracklet in enumerate(self.tracklets):
-                    # Calculate confidence for each track-tracklet pair
-                    conf = self._calculateWeightedConfidence(track, tracklet, **kwargs)
-                    # Store the confidence value in the matrix
-                    confMatrix[x, y] = conf
-            # Append the confMatrix to the matrixList
-            matrixList.append(confMatrix)
-        return matrixList
+            for track in self.tracks:
+                if not track.assigned:
+                    tracks.append(track)
+
+            confs = self._calculateConfidence(tracks, kwargs) # needs testing
+
+            self._assignTracklets(confs) # needs testing
+        
+
+        for tracklet in self.tracklets:
+            obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
+            self.tracks.append(Tracks(self.trackCount, obj, self.frame, tracklet.colour))
+            self.trackCount+=1
+        self.__removeTracks()
+        self.tracklets = []
+
+    def _calculateConfidence(self, tracks, kwargs):
+        numTracks = len(tracks)
+        numTracklets = len(self.tracklets)
+
+        confMatrix = np.zeros((numTracks,numTracklets))
+
+        for x, track in enumerate(tracks):
+            for y, tracklet in enumerate(self.tracklets):
+                conf = self._calculateWeightedConfidence(track, tracklet, **kwargs) # calculate confidence for each track tracklet pair  # if conf >= self.thres: #     trackConfidence.append([track.Id, tracklet.Id, conf])
+                confMatrix[x, y] = conf # potenitally convert to np array
+        return confMatrix
 
     def _assignTracklets(self, confs, assign=None):
         if assign == None:
@@ -176,30 +186,19 @@ class QuickTrack:
             #     newTrack = Tracks(self.trackCount, obj, self.frame, tracklet.colour)
             #     self.tracks.append(newTrack)
             #---------------------------------------------------------------------------------------------------------------------------------------------#
-        elif assign == 'LinAssign': # may not need unnassignedTracks
-            matches = self.linSumAssign(confs[1]) # -----------------------------------------------------------------fix this into groupings
-            # print(matches)
-            # unassignedTracks = [i for i in range(len(self.tracks)) if i not in matches[:, 0]]
-            unassignedTracks = []
-            unassignedTracklets = []
-            for i, tracklet in enumerate(self.tracklets):
-                if len(matches) != 0:
-                    if i not in matches[:, 1]:
-                        unassignedTracklets.append(i)
+        elif assign == 'LinAssign':
+            matches = self.linSumAssign(confs)
 
             for x, y in matches: 
                 if confs[x,y] > self.thres:
                     self.tracks[x].updateTrack(self.tracklets[y])
-                else:
-                    unassignedTracks.append(x)
-            for i in unassignedTracklets:
-                tracklet = self.tracklets[i]
-                obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
-                self.tracks.append(Tracks(self.trackCount, obj, self.frame, tracklet.colour))
-                self.trackCount+=1
+                    self.tracklets[y] = None
+
+        self.tracklets = [tracklet for tracklet in self.tracklets if tracklet is not None]
 
 
-    def __removeTracks(self):
+
+    def __removeTracks(self): # ------------------------------------------------------------ needs to be looked at again, use assigned
          self.tracks = [item for item in self.tracks if self.frame - item.frame <= self.maxAge]
 
 
