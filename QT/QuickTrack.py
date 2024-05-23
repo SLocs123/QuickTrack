@@ -54,13 +54,11 @@ class QuickTrack:
         else:
             self.assign = assign  
 
-        self.confParams = confParams
+        self.confParams = [[cp, w, t] for cp, w, t in zip(confParams, weights, threshold)]
         self.img = None 
-        self.thres = threshold
         self.maxDisp = maxDisplacement 
         self.maxColDif = maxColourDif 
         self.maxShapeDif = maxShapeDif 
-        self.weights = weights 
         self.classes = load_classes(classPath)
         self.tracks = []
         self.trackCount = 0
@@ -138,18 +136,20 @@ class QuickTrack:
             tracklets = []
             # Create a dictionary of keyword arguments
             kwargs = {
-                'KF': 'KF' in param_set,
-                'FE': 'FE' in param_set,
-                'Zone': 'Zone' in param_set,
-                'Shape': 'Shape' in param_set
+                'KF': 'KF' in param_set[0],
+                'FE': 'FE' in param_set[0],
+                'Zone': 'Zone' in param_set[0],
+                'Shape': 'Shape' in param_set[0],
+                'weights': param_set[3]
             }
+            threshold = param_set[2]
             for track in self.tracks:
                 if not track.assigned:
                     tracks.append(track)
 
             confs = self._calculateConfidence(tracks, kwargs) # needs testing
 
-            self._assignTracklets(confs) # needs testing
+            self._assignTracklets(confs, threshold) # needs testing
         
 
         for tracklet in self.tracklets:
@@ -211,14 +211,14 @@ class QuickTrack:
          self.tracks = [item for item in self.tracks if self.frame - item.frame <= self.maxAge]
 
 
-    def _calculateWeightedConfidence(self, track, tracklet, KF=False, FE=False, Zone=False, Shape=False):
+    def _calculateWeightedConfidence(self, track, tracklet, KF=False, FE=False, Zone=False, Shape=False, weights=None):
         total_conf = 0
         total_weight = sum(self.weights)
         confs = []
         confs_vital = []
 
         # call confidence functions here
-        # ------------------------------------------------------------------------------------- # look at passing only required information, instead of whole tracks
+        # ------------------------------------------------------------------------------------- # 
         if KF: confs.append(conf_KF_bbox(track, tracklet, self.maxDisp))
         # if FE: #run feture comparison
         if Shape: confs.append(conf_shape(track, tracklet))
@@ -226,8 +226,8 @@ class QuickTrack:
         # confs_vital.append(confVital_a(track, tracklet))
         # confs_vital.append(confVital_b(track, tracklet))
         # ------------------------------------------------------------------------------------- #
-        if len(self.weights) != len(confs):
-            raise ValueError("The number of inputted weights must match the number of non-vital functions called. Check the _calculate_weighted_confidence function in Quicktrack.py.")
+        if weights is not None and len(weights) != len(confs):
+            raise ValueError("The number of inputted weights must match the number of non-vital functions called. Check the _calculateweightedconfidence function in Quicktrack.py and reassess QuickTrack inputs")
 
         flag = False
         for conf in confs_vital:
