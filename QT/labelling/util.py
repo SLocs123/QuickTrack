@@ -64,6 +64,45 @@ def sortHighest(list):
     return sorted(list, key=lambda x: x[2], reverse=True)
 
 
+def point_in_polygon(point, polygon):
+    """
+    Function to check if a point is inside a polygon using the ray-casting algorithm.
+    
+    Args:
+    - point: A tuple or list representing the (x, y) coordinates of the point to check.
+    - polygon: A list of tuples or lists, each representing the (x, y) coordinates of a vertex of the polygon.
+    
+    Returns:
+    - True if the point is inside the polygon, False otherwise.
+    """
+    x, y = point
+    n = len(polygon)
+    inside = False
+
+    # Ray-casting algorithm
+    for i in range(n):
+        x1, y1 = polygon[i]
+        x2, y2 = polygon[(i + 1) % n]
+
+        # Check if point is on the edge of the polygon
+        if (y1 == y2 and y == y1 and min(x1, x2) <= x <= max(x1, x2)):
+            return True
+
+        # Check if point is above or below the edge
+        if min(y1, y2) < y <= max(y1, y2):
+            if x1 == x2 or x <= min(x1, x2):
+                inside = not inside
+            elif x >= max(x1, x2):
+                continue
+            else:
+                # Calculate intersection of ray with edge
+                intersection = (y - y1) * (x2 - x1) / (y2 - y1) + x1
+                if x <= intersection:
+                    inside = not inside
+
+    return inside
+
+
 def getColourSimple(self, detection):
     width = detection[2] - detection[0]
     height = detection[3] - detection[1]

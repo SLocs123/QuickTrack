@@ -4,6 +4,7 @@ import cv2
 import random
 
 
+
 def plot_one_box(x, img, color=None, label=None, line_thickness=3):
     # Plots one bounding box on image img
     tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
@@ -51,15 +52,10 @@ while cap.isOpened():
     results = model(frame)
     pred = results.pred[0]
     detectionList = pred.tolist()
-    print(len(detectionList))
-    # for track in detectionList:
-    #     xyxy = track[:4]
-    #     plot_one_box(xyxy, frame)
     _ = tracker.update(detectionList, frame)
-    outFrame = tracker.show()
-    print("-------------------------------")
+    # outFrame = tracker.show()
 
-    out.write(outFrame)
+    # out.write(outFrame)
     if cv2.waitKey(1) == ord('q'):
         break
 

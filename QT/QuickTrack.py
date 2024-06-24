@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .Tracks import Tracks
 from .Tracklet import Tracklet
 from .util import *
@@ -7,7 +8,7 @@ from scipy.optimize import linear_sum_assignment
 import cv2
 import random
 import warnings
-from __future__ import annotations
+from .labelling import read_csv
 # implementation of SAE - https://github.com/starwit/sae-stage-template
 
 
@@ -55,6 +56,7 @@ class QuickTrack:
             self.assign = assign  
 
         self.confParams = [[cp, w, t] for cp, w, t in zip(confParams, weights, threshold)]
+        print(self.confParams)
         self.img = None 
         self.maxDisp = maxDisplacement 
         self.maxColDif = maxColourDif 
@@ -68,6 +70,7 @@ class QuickTrack:
         self.frame = 0 
         self.vitalScale = vitalScale
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.classes]
+        self.polygons = [item[1] for item in read_csv()]
 
     def update(self, detectionList, img):
         """
@@ -140,7 +143,7 @@ class QuickTrack:
                 'FE': 'FE' in param_set[0],
                 'Zone': 'Zone' in param_set[0],
                 'Shape': 'Shape' in param_set[0],
-                'weights': param_set[3]
+                'weights': param_set[1]
             }
             threshold = param_set[2]
             for track in self.tracks:
