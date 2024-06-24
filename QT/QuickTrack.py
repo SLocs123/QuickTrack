@@ -216,19 +216,20 @@ class QuickTrack:
 
     def _calculateWeightedConfidence(self, track, tracklet, KF=False, FE=False, Zone=False, Shape=False, weights=None):
         total_conf = 0
-        total_weight = sum(self.weights)
+        total_weight = sum(weights)
         confs = []
         confs_vital = []
 
         # call confidence functions here
         # ------------------------------------------------------------------------------------- # 
         if KF: confs.append(conf_KF_bbox(track, tracklet, self.maxDisp))
-        # if FE: #run feture comparison
+        if FE: confs.append(0.5)#run feture comparison
         if Shape: confs.append(conf_shape(track, tracklet))
         
         # confs_vital.append(confVital_a(track, tracklet))
         # confs_vital.append(confVital_b(track, tracklet))
         # ------------------------------------------------------------------------------------- #
+        print(len(weights), len(confs))
         if weights is not None and len(weights) != len(confs):
             raise ValueError("The number of inputted weights must match the number of non-vital functions called. Check the _calculateweightedconfidence function in Quicktrack.py and reassess QuickTrack inputs")
 
@@ -238,7 +239,7 @@ class QuickTrack:
                 flag = True
                 break
 
-        for conf, weight in zip(confs, self.weights):
+        for conf, weight in zip(confs, weights):
             total_conf += conf * weight
         weighted_confidence = total_conf / total_weight
         if flag:

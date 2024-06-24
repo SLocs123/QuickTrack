@@ -37,7 +37,7 @@ fps = 30  # Frames per second
 codec = cv2.VideoWriter_fourcc(*'XVID')
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-out = cv2.VideoWriter(output_video_path, codec, fps, (frame_width, frame_height))
+# out = cv2.VideoWriter(output_video_path, codec, fps, (frame_width, frame_height))
 
 
 tracker = QT.QuickTrack()
@@ -58,8 +58,6 @@ while cap.isOpened():
     # out.write(outFrame)
     if cv2.waitKey(1) == ord('q'):
         break
-
-
 
 print('Done')
 cap.release()
