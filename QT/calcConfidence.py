@@ -1,14 +1,14 @@
 import numpy as np
 
 
-def calculateWeightedConfidence(self, track, tracklet, KF=False, FE=False, Zone=False, Shape=False, weights=None):
+def calculateWeightedConfidence(track, tracklet, maxDisp, vitalScale=0.8, KF=False, FE=False, Zone=False, Shape=False, weights=None):
     total_conf = 0
     total_weight = sum(weights)
     confs = []
     confs_vital = []
     # call confidence functions here
     # ------------------------------------------------------------------------------------- # 
-    if KF: confs.append(conf_KF_bbox(track, tracklet, self.maxDisp))
+    if KF: confs.append(conf_KF_bbox(track, tracklet, maxDisp))
     if FE: confs.append(0.5)#run feture comparison
     if Shape: confs.append(conf_shape(track, tracklet))
     
@@ -26,7 +26,7 @@ def calculateWeightedConfidence(self, track, tracklet, KF=False, FE=False, Zone=
         total_conf += conf * weight
     weighted_confidence = total_conf / total_weight
     if flag:
-        weighted_confidence = weighted_confidence * self.vitalScale 
+        weighted_confidence = weighted_confidence * vitalScale 
     return weighted_confidence
 
 

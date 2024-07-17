@@ -31,7 +31,7 @@ model.classes = [2]
 
 print('innit')  
 # Open the video file
-cap = cv2.VideoCapture('output.mp4')
+cap = cv2.VideoCapture('CAM-HAZELDELL-126THST.mp4')
 output_video_path = 'output_video.avi'
 fps = 30  # Frames per second
 codec = cv2.VideoWriter_fourcc(*'XVID')

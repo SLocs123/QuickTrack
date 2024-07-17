@@ -4,24 +4,34 @@ import time
 import numpy as np
 import cv2
 import math
+import os
 
 class Kf_Trajectory:
     def __init__(self, traj_dir) -> None:
-        self.traj = None
-        self.polygon_set = self.read_pkl(traj_dir)
-        self.polygons = self.polygon_set.pop('polygons')
+        current_script_directory = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(current_script_directory, traj_dir)
+        self.polygon_set = self.read_pkl(full_path) # Polygons, the polygons they link to and the tracjectory that connects them sahpe: {polygon1: {polygons3: traj, polygon4: traj}, polygon2: {polygon5: traj}} etc
+        self.polygons = self.polygon_set.pop('polygons') # all polygons
+        self.active_polygons = list(self.polygon_set.keys()) # Identify the set of polygons that act as the starting points
         self.assigned = None
         self.trajectories = None
+        self.active_traj = None
         self.sr = None
 
-    def update(self, loc, dx, dy):
-        loc,  _ = self.kf_to_traj(loc, dx,dy)
-        return loc, self.trajectories
+    def update(self, loc, dx, dy, kf_loc=None, bbox=False):
+        if kf_loc == None and self.active_traj == None:
+            return (loc[0] + dx, loc[1] + dy), None
+        
+        if kf_loc == None:
+            locs,  _ = self.kf_to_traj(loc, dx,dy, active=True)
 
-    def kf_to_traj(self, track_pos, kf_dx, kf_dy):
+
+        return xy, self.trajectories
+
+    def kf_to_traj(self, track_pos, kf_dx, kf_dy, active=False):
         if not self.trajectories:
             point = Point(track_pos[0], track_pos[1])
-            for polygon in self.polygons:
+            for polygon in self.active_polygons:
                 if polygon.contains(point):
                     self.assigned = polygon
                     break
@@ -29,11 +39,13 @@ class Kf_Trajectory:
             if not self.assigned:
                 return (track_pos[0] + kf_dx, track_pos[1] + kf_dy), False
 
+
             self.sr = []
             self.trajectories = []
             for internal_dict in self.polygon_set[self.assigned].values():
                 self.trajectories.append(np.array(internal_dict[:,0]))
                 self.sr.append(np.array(internal_dict[:,1]))
+        
 
         xys = []
         for i, traj in enumerate(self.trajectories):
@@ -167,38 +179,38 @@ def xysr_to_bbox(xy, sr):
     y2 = xy[1] + height / 2.0
     return np.array([x1, y1, x2, y2])
 
-coords1 = (640, 1757)
+# coords1 = (640, 1757)
 track_polyTraj = Kf_Trajectory('CAM_HAZEL_TRAJS.pkl')
-image = cv2.imread('useframe.jpg')
+# image = cv2.imread('useframe.jpg')
 
-output_video = 'example-use.mp4'
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
-fps = 10
-frame_width, frame_height = image.shape[1], image.shape[0]
-video_writer = cv2.VideoWriter(output_video, fourcc, fps, (frame_width, frame_height))
-cv2.circle(image, coords1, 10, (0, 0, 255), -1)
-video_writer.write(image)
-coords = coords1
+# output_video = 'example-use.mp4'
+# fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
+# fps = 10
+# frame_width, frame_height = image.shape[1], image.shape[0]
+# video_writer = cv2.VideoWriter(output_video, fourcc, fps, (frame_width, frame_height))
+# cv2.circle(image, coords1, 10, (0, 0, 255), -1)
+# video_writer.write(image)
+# coords = coords1
 
-for i in range(400):
-    loc, traj = track_polyTraj.update(coords,10,15)
-    image_with_position = image.copy()
-    coords = loc[1][0] 
-    sr = loc[1][1]
-    traj = traj[1]
-    center = (int(coords[0]), int(coords[1]))
-    bbox = xysr_to_bbox(coords, sr)
-    top_left = tuple([int(bbox[0]), int(bbox[1])])
-    bottom_right = tuple([int(bbox[2]), int(bbox[3])])
+# for i in range(400):
+#     loc, traj = track_polyTraj.update(coords,10,15)
+#     image_with_position = image.copy()
+#     coords = loc[1][0] 
+#     sr = loc[1][1]
+#     traj = traj[1]
+#     center = (int(coords[0]), int(coords[1]))
+#     bbox = xysr_to_bbox(coords, sr)
+#     top_left = tuple([int(bbox[0]), int(bbox[1])])
+#     bottom_right = tuple([int(bbox[2]), int(bbox[3])])
 
 
-    for point in traj:
-        cv2.circle(image_with_position, (int(point[0]), int(point[1])),  2, (0, 255, 255), -1)
-        for i in range(len(traj) - 1):
-            cv2.line(image_with_position, (int(traj[i][0]), int(traj[i][1])), (int(traj[i+1][0]), int(traj[i+1][1])), (0, 255, 255), 1)
-    cv2.circle(image_with_position, center, 10, (0, 0, 255), -1)
-    cv2.rectangle(image_with_position, top_left, bottom_right, (0, 0, 255), 2)
+#     for point in traj:
+#         cv2.circle(image_with_position, (int(point[0]), int(point[1])),  2, (0, 255, 255), -1)
+#         for i in range(len(traj) - 1):
+#             cv2.line(image_with_position, (int(traj[i][0]), int(traj[i][1])), (int(traj[i+1][0]), int(traj[i+1][1])), (0, 255, 255), 1)
+#     cv2.circle(image_with_position, center, 10, (0, 0, 255), -1)
+#     cv2.rectangle(image_with_position, top_left, bottom_right, (0, 0, 255), 2)
 
-    video_writer.write(image_with_position)
-video_writer.release()
-cv2.destroyAllWindows()
+#     video_writer.write(image_with_position)
+# video_writer.release()
+# cv2.destroyAllWindows()

@@ -74,7 +74,6 @@ class QuickTrack:
         self.frame = 0 
         self.vitalScale = vitalScale
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.classes]
-        self.polygons = [item[1] for item in read_csv()]
 
     def update(self, detectionList, img):
         """
@@ -156,7 +155,10 @@ class QuickTrack:
             if len(tracks)>0:
                 confs = self._calculateConfidence(tracks, kwargs) # needs testing
                 self._assignTracklets(confs, threshold) # needs testing
-        
+        for track in self.tracks:
+            if track.assigned == False:
+                print(track)
+
 
         for tracklet in self.tracklets:
             obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]
@@ -173,7 +175,7 @@ class QuickTrack:
 
         for x, track in enumerate(tracks):
             for y, tracklet in enumerate(self.tracklets):
-                conf = calculateWeightedConfidence(track, tracklet, **kwargs) # calculate confidence for each track tracklet pair  # if conf >= self.thres: #     trackConfidence.append([track.Id, tracklet.Id, conf])
+                conf = calculateWeightedConfidence(track, tracklet, self.maxDisp, vitalScale=self.vitalScale,**kwargs) # calculate confidence for each track tracklet pair  # if conf >= self.thres: #     trackConfidence.append([track.Id, tracklet.Id, conf])
                 confMatrix[x, y] = conf # potenitally convert to np array
         return confMatrix
 

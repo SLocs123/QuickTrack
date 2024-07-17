@@ -1,12 +1,16 @@
 # import time
 from .util import averageShape, getMiddle, bbox_to_z, x_to_bbox
+from .KF_Traj.kf_to_Traj.kf_to_traj import Kf_Trajectory
 from .kalmanFilter import createKF, KFTrustworthy
 import numpy as np
 # or import util ?????????????????????????????
+import time
 
 
 class Tracks:
     def __init__(self, Id, Obj, Frame, Colour, Bounds=[6, 2]):
+        filename = 'CAM_HAZEL_TRAJS.pkl' # This needs to be updated if using different video and labels
+
         self.Id = Id
         self.bbox = Obj[:4]
         self.bboxes = [Obj[:4]]
@@ -23,8 +27,8 @@ class Tracks:
         self.predictedPOS = []
         self.predictedbbox = []
         self.assigned = False
-        #self.age = () # --------------------------------------------------!!
-
+        self.kf_to_traj = Kf_Trajectory(filename)
+        self.age = 0
 
     def updateTrack(self, tracklet): # could be better to incorporate these parameters in a smarter way, using previous observations as support. Future work for now
         self.bbox = tracklet.bbox
@@ -37,9 +41,10 @@ class Tracks:
         self.conf = tracklet.conf
         self.frame = tracklet.frame
         self.assigned = True
+        self.age += 1
 
     
-    def assignTracklet(self, tracklet):
+    def assignTracklet(self, tracklet): # I dont think this is being used
          self._updateKF([tracklet.loc[0], tracklet.loc[1], tracklet.size, tracklet.shape])
 
 
@@ -50,6 +55,11 @@ class Tracks:
         # print(self.kf.x)
         if KFTrustworthy(self, [10, 10, 5, 5]):
                 # print('trustworthy')
+                x,y,dx,dy,s,r = self.kf.x
+                loc, _ = self.kf_to_traj.update(self.loc, dx, dy, kf_loc=(x,y), bbox=True)
+                # print(self.kf.x)
+                # print(x,y,dx,dy,s,r)
+                # time.sleep(60)
                 self.predictedPOS.append(self.kf.x[:2])
                 self.predictedbbox.append(x_to_bbox([self.kf.x[0], self.kf.x[1], self.kf.x[4], self.kf.x[5]]).flatten().tolist())
         
