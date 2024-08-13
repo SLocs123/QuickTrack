@@ -18,17 +18,45 @@ class Kf_Trajectory:
         self.active_traj = None
         self.sr = None
 
-    def update(self, loc, dx, dy, kf_loc=None, bbox=False):
+    def update(self, loc, dx, dy, kf_s, kf_r, kf_loc=None, bbox=False, both=False):
+        """
+        Return in the format [[x,y], [s,r]] or [x1,x2,y1,y2] if bbox=True
+        if both true return [[[x,y], [s,r]], [x1,x2,y1,y2]]
+
+        input tuples or list of x,y coords !!have not implemented input bbox, need KF output anyway
+        """
+        if loc[0] != int: # This is for use in QuickTrack, If this is causing issues then commant out and input tuple for loc
+            loc = (loc[0][0], loc[1][0])
+
         if kf_loc == None and self.active_traj == None:
-            return (loc[0] + dx, loc[1] + dy), None
-        
-        if kf_loc == None:
-            locs,  _ = self.kf_to_traj(loc, dx,dy, active=True)
+            output_loc = [[loc[0] + dx, loc[1] + dy], [kf_s, kf_r]]
+        elif kf_loc == None:
+            location,  _ = self.kf_to_traj(loc, dx, dy, active=True)
+            output_loc = location
+        else:
+            kf_loc = np.array(kf_loc)
+            locs, _ = self.kf_to_traj(loc, dx,dy,)
 
+            closest = [[float('inf')], [0]]
+            for location in locs:
+                current = np.linalg.norm(location[0] - kf_loc)
+                if current < closest[0]:
+                    closest = [[current], location]
+            output_loc = closest[1]
 
-        return xy, self.trajectories
+        if output_loc[1] is None:
+            output_loc[1] = [kf_s, kf_r]
+
+        if bbox:
+            output_bbox = self.convert_to_bbox(output_loc)
+            if both:
+                return [output_loc, output_bbox], self.trajectories
+            else:
+                return output_bbox, self.trajectories
+        return output_loc, self.trajectories
 
     def kf_to_traj(self, track_pos, kf_dx, kf_dy, active=False):
+        # print('self.trajectories1: ', self.trajectories)
         if not self.trajectories:
             point = Point(track_pos[0], track_pos[1])
             for polygon in self.active_polygons:
@@ -37,7 +65,7 @@ class Kf_Trajectory:
                     break
 
             if not self.assigned:
-                return (track_pos[0] + kf_dx, track_pos[1] + kf_dy), False
+                return [[[track_pos[0] + kf_dx, track_pos[1] + kf_dy], None]], False
 
 
             self.sr = []
@@ -46,9 +74,14 @@ class Kf_Trajectory:
                 self.trajectories.append(np.array(internal_dict[:,0]))
                 self.sr.append(np.array(internal_dict[:,1]))
         
+        if active:
+            current_trajs = self.active_traj
+        else:
+            current_trajs = self.trajectories
 
+        # print('self.trajectories2: ', self.trajectories)
         xys = []
-        for i, traj in enumerate(self.trajectories):
+        for i, traj in enumerate(current_trajs):
             srs = self.sr[i]
             xy, sr = self.calculate_positions_along_trajectory(track_pos, traj, srs, kf_dx, kf_dy)
             xys.append([xy, sr])
@@ -71,6 +104,7 @@ class Kf_Trajectory:
         segment_index = index
         sr = srs[segment_index]
         while segment_index < len(trajectory) - 1:
+            print('loop')
             segment_start = np.array(trajectory[segment_index - 1], dtype=float)
             segment_end = np.array(trajectory[segment_index], dtype=float)
             segment_vector = segment_end - segment_start
@@ -78,11 +112,7 @@ class Kf_Trajectory:
             segment_unit_vector = segment_vector / segment_length
             sr = srs[segment_index]
             
-            # print(segment_end)
-            # print('segment_start: ', segment_start)
-            # print(segment_vector)
-            # print('-----------------------------------------------------------------------------------------------------------------------------------------------')
-
+          
             if not self.is_between(segment_start, segment_end, current_position):
                 # Calculate correction towards trajectory
                 projection = np.dot(current_position - segment_start, segment_unit_vector)
@@ -99,16 +129,14 @@ class Kf_Trajectory:
                 move_length = np.linalg.norm(move_vector)
                 if move_length > 0:
                     if move_length > movement_scalar:
+                        # print('current_position: ', current_position)
+                        # print('movement_scalar: ', movement_scalar)
+                        # print('move_vector: ', move_vector)
+                        # print('move_length: ', move_length)
                         current_position += movement_scalar * (move_vector / move_length)
-                        # print(current_position)
-                        # print('segment_unit_vector: ', segment_unit_vector)
-                        # print('adjustment_vector: ', adjustment_vector)
-                        # print(move_vector)
-                        # print('offline')
                         break
                     else:
                         current_position += move_vector
-                        # print('offline')
                         break
 
             else:
@@ -165,52 +193,66 @@ class Kf_Trajectory:
         ym = (y1 + y2) / 2
         return (xm, ym)
     
-def xysr_to_bbox(xy, sr):
-    """
-    x in form [x,y,s,r]
-    Takes a bounding box in the center form [x, y, s, r] and returns it in the form
-    [x1, y1, x2, y2] where x1, y1 is the top left and x2, y2 is the bottom right.
-    """
-    width = np.sqrt(sr[0] * sr[1])
-    height = sr[0] / width
-    x1= xy[0] - width / 2.0
-    y1 = xy[1] - height / 2.0
-    x2 = xy[0] + width / 2.0
-    y2 = xy[1] + height / 2.0
-    return np.array([x1, y1, x2, y2])
+    def convert_to_bbox(self, loc):
+        x,y = loc[0]
+        s,r = loc[1]
+        width = np.sqrt(s * r)
+        height = s / width
+        x1= x - width / 2.0
+        y1 = y - height / 2.0
+        x2 = x + width / 2.0
+        y2 = y + height / 2.0
+        return [x1,y1,x2,y2]
+
+
+    
+# def xysr_to_bbox(xy, sr):
+#     """
+#     x in form [x,y,s,r]
+#     Takes a bounding box in the center form [x, y, s, r] and returns it in the form
+#     [x1, y1, x2, y2] where x1, y1 is the top left and x2, y2 is the bottom right.
+#     """
+#     width = np.sqrt(sr[0] * sr[1])
+#     height = sr[0] / width
+#     x1= xy[0] - width / 2.0
+#     y1 = xy[1] - height / 2.0
+#     x2 = xy[0] + width / 2.0
+#     y2 = xy[1] + height / 2.0
+#     return np.array([x1, y1, x2, y2])
 
 # coords1 = (640, 1757)
-track_polyTraj = Kf_Trajectory('CAM_HAZEL_TRAJS.pkl')
-# image = cv2.imread('useframe.jpg')
+# track_polyTraj = Kf_Trajectory('CAM_HAZEL_TRAJS.pkl')
+# # image = cv2.imread('useframe.jpg')
 
-# output_video = 'example-use.mp4'
-# fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
-# fps = 10
-# frame_width, frame_height = image.shape[1], image.shape[0]
-# video_writer = cv2.VideoWriter(output_video, fourcc, fps, (frame_width, frame_height))
-# cv2.circle(image, coords1, 10, (0, 0, 255), -1)
-# video_writer.write(image)
+# # output_video = 'example-use.mp4'
+# # fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
+# # fps = 10
+# # frame_width, frame_height = image.shape[1], image.shape[0]
+# # video_writer = cv2.VideoWriter(output_video, fourcc, fps, (frame_width, frame_height))
+# # cv2.circle(image, coords1, 10, (0, 0, 255), -1)
+# # video_writer.write(image)
 # coords = coords1
 
 # for i in range(400):
-#     loc, traj = track_polyTraj.update(coords,10,15)
-#     image_with_position = image.copy()
-#     coords = loc[1][0] 
-#     sr = loc[1][1]
-#     traj = traj[1]
-#     center = (int(coords[0]), int(coords[1]))
-#     bbox = xysr_to_bbox(coords, sr)
-#     top_left = tuple([int(bbox[0]), int(bbox[1])])
-#     bottom_right = tuple([int(bbox[2]), int(bbox[3])])
+#     loc, traj = track_polyTraj.update(coords,10,15, kf_loc=[10,10])
+#     # image_with_position = image.copy()
+#     coords = loc
+#     print(coords)
+#     # sr = loc[1][1]
+#     # traj = traj[1]
+#     # center = (int(coords[0]), int(coords[1]))
+#     # bbox = xysr_to_bbox(coords, sr)
+#     # top_left = tuple([int(bbox[0]), int(bbox[1])])
+#     # bottom_right = tuple([int(bbox[2]), int(bbox[3])])
 
 
-#     for point in traj:
-#         cv2.circle(image_with_position, (int(point[0]), int(point[1])),  2, (0, 255, 255), -1)
-#         for i in range(len(traj) - 1):
-#             cv2.line(image_with_position, (int(traj[i][0]), int(traj[i][1])), (int(traj[i+1][0]), int(traj[i+1][1])), (0, 255, 255), 1)
-#     cv2.circle(image_with_position, center, 10, (0, 0, 255), -1)
-#     cv2.rectangle(image_with_position, top_left, bottom_right, (0, 0, 255), 2)
+#     # for point in traj:
+#     #     cv2.circle(image_with_position, (int(point[0]), int(point[1])),  2, (0, 255, 255), -1)
+#     #     for i in range(len(traj) - 1):
+#     #         cv2.line(image_with_position, (int(traj[i][0]), int(traj[i][1])), (int(traj[i+1][0]), int(traj[i+1][1])), (0, 255, 255), 1)
+#     # cv2.circle(image_with_position, center, 10, (0, 0, 255), -1)
+#     # cv2.rectangle(image_with_position, top_left, bottom_right, (0, 0, 255), 2)
 
-#     video_writer.write(image_with_position)
-# video_writer.release()
-# cv2.destroyAllWindows()
+# #     video_writer.write(image_with_position)
+# # video_writer.release()
+# # cv2.destroyAllWindows()

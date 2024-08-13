@@ -10,6 +10,7 @@ import cv2
 import random
 import warnings
 from .labelling import read_csv
+import time
 # implementation of SAE - https://github.com/starwit/sae-stage-template
 
 
@@ -155,10 +156,15 @@ class QuickTrack:
             if len(tracks)>0:
                 confs = self._calculateConfidence(tracks, kwargs) # needs testing
                 self._assignTracklets(confs, threshold) # needs testing
-        for track in self.tracks:
-            if track.assigned == False:
-                print(track)
 
+        for track in self.tracks:
+            if track.assigned == False: # update track with its own information
+                print(track.predictedbbox)
+                bbox = track.predictedbbox[-1]
+                print(bbox)
+                time.sleep(60)
+                # item = [1][3], track.conf, track.cls]
+                tracklet = Tracklet('psuedo', obj, track.colour, track.frame)
 
         for tracklet in self.tracklets:
             obj = [tracklet.bbox[0], tracklet.bbox[1], tracklet.bbox[2], tracklet.bbox[3], tracklet.conf, tracklet.cls]

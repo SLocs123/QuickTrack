@@ -10,7 +10,6 @@ import time
 class Tracks:
     def __init__(self, Id, Obj, Frame, Colour, Bounds=[6, 2]):
         filename = 'CAM_HAZEL_TRAJS.pkl' # This needs to be updated if using different video and labels
-
         self.Id = Id
         self.bbox = Obj[:4]
         self.bboxes = [Obj[:4]]
@@ -49,20 +48,21 @@ class Tracks:
 
 
     def _updateKF(self, newxysr):
+        print('run')
         # newxy contains [x, y, s, r]
         self.kf.update(np.array(newxysr))
         self.kf.predict()
         # print(self.kf.x)
-        if KFTrustworthy(self, [10, 10, 5, 5]):
-                # print('trustworthy')
-                x,y,dx,dy,s,r = self.kf.x
-                loc, _ = self.kf_to_traj.update(self.loc, dx, dy, kf_loc=(x,y), bbox=True)
-                # print(self.kf.x)
-                # print(x,y,dx,dy,s,r)
-                # time.sleep(60)
-                self.predictedPOS.append(self.kf.x[:2])
-                self.predictedbbox.append(x_to_bbox([self.kf.x[0], self.kf.x[1], self.kf.x[4], self.kf.x[5]]).flatten().tolist())
-        
+        # if KFTrustworthy(self, [10, 10, 5, 5]):
+        #         # print('trustworthy')
+        x,y,dx,dy,s,r = self.kf.x
+        out,  _ = self.kf_to_traj.update(self.loc, dx, dy, s, r, kf_loc=[x,y], bbox=True, both=True)
+        bbox = out[1]
+        xysr = out[0]
+        xy = xysr[0]
+        self.predictedPOS.append(xy)
+        self.predictedbbox.append(bbox)
+
 
     def getId(self):
         return self.id
